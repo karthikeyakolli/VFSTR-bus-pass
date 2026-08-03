@@ -6,7 +6,7 @@ import { AppRoutes } from '@/routes/AppRoutes';
 export const App: React.FC = () => {
   return (
     <AppProvider>
-      <BrowserRouter>
+      <BrowserRouter basename ="/VFSTR-bus-pass">
         <AppRoutes />
       </BrowserRouter>
     </AppProvider>
