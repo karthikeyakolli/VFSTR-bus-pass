@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User as UserIcon, SunMoon, LogOut, GraduationCap } from 'lucide-react';
+import { User as UserIcon, LogOut, GraduationCap } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
-import { useTheme } from '@/hooks/useTheme';
 
 export const UserProfileMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,7 +14,6 @@ export const UserProfileMenu: React.FC = () => {
 
   const { user, logout } = useAuth();
   const { studentProfile } = useUser();
-  const { theme, setTheme } = useTheme();
 
   const userName = user?.name || studentProfile.name;
   const userSubtext = `${studentProfile.regNo} • CSE`;
@@ -52,28 +50,28 @@ export const UserProfileMenu: React.FC = () => {
           onClick={() => setIsOpen(!isOpen)}
           aria-expanded={isOpen}
           aria-label="User profile menu"
-          className="flex items-center gap-3 rounded-xl p-1 text-left transition-colors hover:bg-accent/60 focus:outline-none focus:ring-2 focus:ring-ring"
+          className="flex items-center gap-3 rounded-xl p-1 text-left transition-colors hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
         >
           <Avatar name={userName} size="md" status="online" />
           <div className="hidden md:flex flex-col">
-            <span className="text-xs font-semibold text-foreground leading-none">{userName}</span>
-            <span className="text-[11px] text-muted-foreground capitalize mt-0.5">{userSubtext}</span>
+            <span className="text-xs font-semibold text-slate-900 leading-none">{userName}</span>
+            <span className="text-[11px] text-slate-500 capitalize mt-0.5">{userSubtext}</span>
           </div>
         </button>
 
         {/* Dropdown Card */}
         {isOpen && (
-          <div className="absolute right-0 z-50 mt-2 w-60 rounded-xl border border-border bg-card p-2 text-card-foreground shadow-xl animate-in fade-in-0 zoom-in-95">
+          <div className="absolute right-0 z-50 mt-2 w-60 rounded-xl border border-slate-200 bg-white p-2 text-slate-900 shadow-xl animate-in fade-in-0 zoom-in-95">
             {/* Header info */}
-            <div className="px-3 py-2 border-b border-border mb-1">
+            <div className="px-3 py-2 border-b border-slate-100 mb-1">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-foreground">{userName}</span>
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary capitalize">
+                <span className="text-xs font-bold text-slate-900">{userName}</span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 capitalize">
                   <GraduationCap className="h-3 w-3" />
                   Student
                 </span>
               </div>
-              <span className="text-[11px] text-muted-foreground">{userSubtext}</span>
+              <span className="text-[11px] text-slate-500">{userSubtext}</span>
             </div>
 
             {/* Menu options */}
@@ -83,35 +81,20 @@ export const UserProfileMenu: React.FC = () => {
                   setIsOpen(false);
                   navigate('/student/profile');
                 }}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-colors"
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
               >
-                <UserIcon className="h-4 w-4 text-muted-foreground" />
+                <UserIcon className="h-4 w-4 text-slate-500" />
                 <span>My Profile</span>
               </button>
 
-              <button
-                onClick={() => {
-                  setTheme(theme === 'dark' ? 'light' : 'dark');
-                }}
-                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-colors"
-              >
-                <div className="flex items-center gap-2.5">
-                  <SunMoon className="h-4 w-4 text-muted-foreground" />
-                  <span>Appearance</span>
-                </div>
-                <span className="text-[10px] font-bold uppercase text-primary bg-primary/10 px-2 py-0.5 rounded">
-                  {theme}
-                </span>
-              </button>
-
-              <div className="my-1 border-t border-border" />
+              <div className="my-1 border-t border-slate-100" />
 
               <button
                 onClick={() => {
                   setIsOpen(false);
                   setShowLogoutConfirm(true);
                 }}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
                 <span>Logout</span>

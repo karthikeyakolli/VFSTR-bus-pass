@@ -1,10 +1,9 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Menu, Sun, Moon } from 'lucide-react';
+import { Menu, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Breadcrumbs, BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import { SearchBar } from '@/components/ui/SearchBar';
-import { useTheme } from '@/hooks/useTheme';
 import { NotificationsPopover } from './NotificationsPopover';
 import { UserProfileMenu } from './UserProfileMenu';
 
@@ -14,7 +13,6 @@ export interface TopNavProps {
 
 export const TopNav: React.FC<TopNavProps> = ({ onMobileMenuToggle }) => {
   const location = useLocation();
-  const { theme, setTheme } = useTheme();
 
   // Generate dynamic breadcrumb trail based on active route pathname
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
@@ -29,7 +27,6 @@ export const TopNav: React.FC<TopNavProps> = ({ onMobileMenuToggle }) => {
       else if (path === '/student/notifications') items.push({ label: 'Notices' });
       else if (path === '/student/profile') items.push({ label: 'Profile' });
       else if (path === '/student/applications') items.push({ label: 'Requests' });
-      else if (path === '/student/settings') items.push({ label: 'Settings' });
       return items;
     }
 
@@ -37,7 +34,7 @@ export const TopNav: React.FC<TopNavProps> = ({ onMobileMenuToggle }) => {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-background/95 backdrop-blur px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white/95 backdrop-blur-md px-4 sm:px-6 shadow-sm">
       {/* Left: Mobile Trigger & Breadcrumbs */}
       <div className="flex items-center gap-3">
         {onMobileMenuToggle && (
@@ -45,7 +42,7 @@ export const TopNav: React.FC<TopNavProps> = ({ onMobileMenuToggle }) => {
             variant="ghost"
             size="icon"
             onClick={onMobileMenuToggle}
-            className="lg:hidden text-muted-foreground hover:text-foreground"
+            className="lg:hidden text-slate-600 hover:text-slate-900"
             aria-label="Open navigation menu"
           >
             <Menu className="h-5 w-5" />
@@ -63,20 +60,14 @@ export const TopNav: React.FC<TopNavProps> = ({ onMobileMenuToggle }) => {
         <SearchBar placeholder="Search routes, passes, students..." />
       </div>
 
-      {/* Right: Notifications Popover, Theme Toggle & User Profile Dropdown Menu */}
-      <div className="flex items-center gap-2">
+      {/* Right: System Badge, Notifications & Profile Menu */}
+      <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+          <Sparkles className="h-3.5 w-3.5" />
+          <span>STMS Light Mode</span>
+        </div>
         <NotificationsPopover />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="text-muted-foreground hover:text-foreground"
-          aria-label="Toggle light/dark theme"
-          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-        >
-          {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4" />}
-        </Button>
-        <div className="h-6 w-px bg-border mx-1" />
+        <div className="h-6 w-px bg-slate-200 mx-1" />
         <UserProfileMenu />
       </div>
     </header>

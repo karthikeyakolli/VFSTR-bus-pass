@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 
-export type Theme = 'dark' | 'light' | 'system';
+export type Theme = 'light';
 
 export interface ThemeContextType {
   theme: Theme;
@@ -11,34 +11,18 @@ export const ThemeContext = createContext<ThemeContextType | undefined>(undefine
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode; defaultTheme?: Theme }> = ({
   children,
-  defaultTheme = 'system',
 }) => {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem('vfstr-theme') as Theme) || defaultTheme
-  );
+  const [theme] = useState<Theme>('light');
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
-      root.classList.add(systemTheme);
-      return;
-    }
-
-    root.classList.add(theme);
-  }, [theme]);
-
-  const updateTheme = (newTheme: Theme) => {
-    localStorage.setItem('vfstr-theme', newTheme);
-    setTheme(newTheme);
-  };
+    root.classList.remove('dark');
+    root.classList.add('light');
+    localStorage.setItem('vfstr-theme', 'light');
+  }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme: updateTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme: () => {} }}>
       {children}
     </ThemeContext.Provider>
   );
