@@ -27,8 +27,14 @@ import {
   Compass,
 } from 'lucide-react';
 
+import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@/hooks/useUser';
+import { UserCheck } from 'lucide-react';
+
 export const HomePage: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const { isAuthenticated } = useAuth();
+  const { studentProfile } = useUser();
 
   const stats = [
     { title: 'Active Bus Routes', value: '48+', description: 'Connecting Guntur, Vijayawada, Tenali & Ongole', icon: <MapPin className="h-5 w-5 text-primary" /> },
@@ -113,25 +119,76 @@ export const HomePage: React.FC = () => {
                 Official Transport Portal • VFSTR Vadlamudi Campus
               </Badge>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">
-                VFSTR Smart Transport <span className="text-primary">Management System</span>
-              </h1>
+              {isAuthenticated ? (
+                <div className="space-y-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 dark:bg-sky-900/40 text-primary border border-sky-200 dark:border-sky-800 text-xs font-bold">
+                    <UserCheck className="h-3.5 w-3.5" />
+                    <span>Authenticated Student Session Active</span>
+                  </div>
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">
+                    Welcome back, <span className="text-primary">{studentProfile.name}</span>!
+                  </h1>
+                  <div className="p-4 rounded-xl bg-card border-2 border-primary/20 shadow-sm space-y-2 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-muted-foreground">
+                      <div>
+                        <span className="font-semibold text-foreground">Register Roll No:</span>{' '}
+                        <span className="font-mono text-primary font-bold">{studentProfile.regNo}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-foreground">Academic Section:</span>{' '}
+                        <span className="font-medium text-foreground">{studentProfile.section}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-foreground">College Email:</span>{' '}
+                        <span className="font-medium text-foreground">{studentProfile.email}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-foreground">Department:</span>{' '}
+                        <span className="font-medium text-foreground">{studentProfile.department}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">
+                    VFSTR Smart Transport <span className="text-primary">Management System</span>
+                  </h1>
 
-              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-2xl">
-                Digitizing the university commuting experience for Vignan Foundation for Science, Technology & Research. Seamlessly apply for annual bus passes, view route timetables, and manage fee clearings.
-              </p>
+                  <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-2xl">
+                    Digitizing the university commuting experience for Vignan Foundation for Science, Technology & Research. Seamlessly apply for annual bus passes, view route timetables, and manage fee clearings.
+                  </p>
+                </>
+              )}
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
-                <Link to="/login">
-                  <Button size="lg" leftIcon={<GraduationCap className="h-5 w-5" />} rightIcon={<ArrowRight className="h-4 w-4" />}>
-                    Student Login
-                  </Button>
-                </Link>
-                <Link to="/routes">
-                  <Button variant="outline" size="lg" leftIcon={<Compass className="h-5 w-5" />}>
-                    Learn More & Routes
-                  </Button>
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link to="/student">
+                      <Button size="lg" leftIcon={<GraduationCap className="h-5 w-5" />} rightIcon={<ArrowRight className="h-4 w-4" />}>
+                        Go to My Student Portal
+                      </Button>
+                    </Link>
+                    <Link to="/student/profile">
+                      <Button variant="outline" size="lg" leftIcon={<UserCheck className="h-5 w-5" />}>
+                        My Profile Details
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login">
+                      <Button size="lg" leftIcon={<GraduationCap className="h-5 w-5" />} rightIcon={<ArrowRight className="h-4 w-4" />}>
+                        Student Login
+                      </Button>
+                    </Link>
+                    <Link to="/routes">
+                      <Button variant="outline" size="lg" leftIcon={<Compass className="h-5 w-5" />}>
+                        Learn More & Routes
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
 
               <div className="flex items-center gap-6 pt-4 text-xs text-muted-foreground border-t border-border">
@@ -166,10 +223,14 @@ export const HomePage: React.FC = () => {
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-foreground">VFSTR DIGITAL BUS PASS</h4>
-                      <p className="text-[10px] text-muted-foreground">Academic Year 2026 - 2027</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {isAuthenticated ? studentProfile.name : 'Academic Year 2026 - 2027'}
+                      </p>
                     </div>
                   </div>
-                  <Badge variant="success" dot>Active</Badge>
+                  <Badge variant={isAuthenticated ? 'secondary' : 'success'} dot>
+                    {isAuthenticated ? studentProfile.regNo : 'Active'}
+                  </Badge>
                 </div>
 
                 {/* QR Code Graphic Placeholder */}
@@ -177,7 +238,9 @@ export const HomePage: React.FC = () => {
                   <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-background border border-border p-2 shadow-inner">
                     <QrCode className="h-20 w-20 text-foreground" />
                   </div>
-                  <span className="text-[10px] font-mono text-muted-foreground mt-2">PASS ID: VFSTR-2026-R14-04001</span>
+                  <span className="text-[10px] font-mono text-muted-foreground mt-2">
+                    PASS ID: VFSTR-2026-{studentProfile.regNo}
+                  </span>
                 </div>
               </Card>
             </div>
@@ -443,18 +506,30 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Login Call To Action Box */}
+            {/* Login / Portal Call To Action Box */}
             <Card className="p-8 flex flex-col gap-5 border-2 border-primary/30 bg-card text-center shadow-lg">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md">
                 <GraduationCap className="h-8 w-8" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-xl font-extrabold text-foreground">Ready to Access Student Transport Portal?</h3>
-                <p className="text-xs text-muted-foreground">Log in with your VFSTR Roll Number or Email to view your active digital pass.</p>
+                {isAuthenticated ? (
+                  <>
+                    <Badge variant="secondary" className="text-[10px] font-mono mb-1">
+                      {studentProfile.regNo} • {studentProfile.section}
+                    </Badge>
+                    <h3 className="text-xl font-extrabold text-foreground">{studentProfile.name}</h3>
+                    <p className="text-xs text-muted-foreground">{studentProfile.email}</p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-xl font-extrabold text-foreground">Ready to Access Student Transport Portal?</h3>
+                    <p className="text-xs text-muted-foreground">Log in with your VFSTR Roll Number or Email to view your active digital pass.</p>
+                  </>
+                )}
               </div>
-              <Link to="/login" className="w-full">
+              <Link to={isAuthenticated ? '/student' : '/login'} className="w-full">
                 <Button size="lg" variant="primary" className="w-full font-bold" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                  Access Student Portal Login
+                  {isAuthenticated ? 'Open My Student Dashboard' : 'Access Student Portal Login'}
                 </Button>
               </Link>
             </Card>
