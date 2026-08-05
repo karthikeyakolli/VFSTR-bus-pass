@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
+
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox';
@@ -81,36 +81,78 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full max-w-5xl mx-auto py-6 animate-page">
       {/* Back to Home Link */}
       <div className="mb-4">
-        <Link to="/" className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+        <Link to="/" className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-1 py-0.5">
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to VFSTR Transport Portal</span>
         </Link>
       </div>
 
-      <Card className="border-2 border-border shadow-2xl overflow-hidden bg-card">
-        {/* Brand Header Banner */}
-        <CardHeader className="bg-primary/5 pb-6 border-b border-border/60 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md mb-3">
-            <Bus className="h-6 w-6" />
-          </div>
-          <CardTitle className="text-xl font-bold tracking-tight text-foreground">
-            {APP_CONFIG.shortName} Student Sign In
-          </CardTitle>
-          <CardDescription className="text-xs text-muted-foreground">
-            {APP_CONFIG.institution}
-          </CardDescription>
-        </CardHeader>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 rounded-2xl border-2 border-border shadow-2xl overflow-hidden bg-card">
+        {/* Left Side: Campus Image Placeholder & Academic Welcome (Desktop) */}
+        <div className="lg:col-span-6 bg-gradient-to-br from-primary via-primary/90 to-primary-hover p-8 sm:p-10 text-primary-foreground flex flex-col justify-between relative overflow-hidden hidden sm:flex">
+          {/* Subtle Background Overlay Grid */}
+          <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" />
 
-        <CardContent className="pt-6">
+          <div className="relative z-10 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-background/20 backdrop-blur border border-white/20 text-primary-foreground">
+                <Bus className="h-6 w-6" />
+              </div>
+              <div>
+                <span className="text-xs font-extrabold uppercase tracking-widest text-primary-foreground/80 block">
+                  VFSTR PORTAL
+                </span>
+                <span className="text-lg font-black tracking-tight">{APP_CONFIG.shortName}</span>
+              </div>
+            </div>
+
+            <div className="pt-6 space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+                Vignan Foundation for Science, Technology & Research
+              </h2>
+              <p className="text-xs sm:text-sm text-primary-foreground/85 leading-relaxed">
+                Official Transport Management System. Digitizing student bus pass subscriptions, route schedules, and fee receipts across Vadlamudi campus.
+              </p>
+            </div>
+          </div>
+
+          {/* Campus Hero Graphic Placeholder */}
+          <div className="relative z-10 my-6 p-4 rounded-xl bg-white/10 backdrop-blur border border-white/20 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold">Vadlamudi Main Campus Terminal</span>
+              <span className="text-[10px] font-mono bg-white/20 px-2 py-0.5 rounded font-semibold">65+ Fleet Buses</span>
+            </div>
+            <p className="text-[11px] text-primary-foreground/80">
+              Connecting Guntur, Vijayawada, Tenali, and surrounding districts safely.
+            </p>
+          </div>
+
+          <div className="relative z-10 pt-4 border-t border-white/20 flex items-center justify-between text-[11px] text-primary-foreground/80">
+            <span>Deemed to be University</span>
+            <span>Est. Vadlamudi • AP</span>
+          </div>
+        </div>
+
+        {/* Right Side: Modern Login Form */}
+        <div className="lg:col-span-6 p-6 sm:p-10 flex flex-col justify-center bg-card">
+          <div className="mb-6 space-y-1">
+            <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
+              Student Sign In
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Enter your Registration Roll Number or College Email to proceed.
+            </p>
+          </div>
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Redirect Notice Banner if coming from a protected route */}
+            {/* Redirect Notice Banner */}
             {redirectTarget && !authError && !authSuccess && (
               <Alert variant="info" className="py-2.5">
                 <AlertTitle className="text-xs font-bold">Authentication Required</AlertTitle>
-                <AlertDescription className="text-xs">Please sign in to access the requested page.</AlertDescription>
+                <AlertDescription className="text-xs">Please sign in to access your requested page.</AlertDescription>
               </Alert>
             )}
 
@@ -132,13 +174,13 @@ export const LoginPage: React.FC = () => {
             {/* Identifier Input */}
             <Input
               label="Roll Number or College Email"
-              placeholder="e.g. 251FA04564 or 251FA04564@gmail.com"
+              placeholder="e.g. 211FA04001 or student@vignan.ac.in"
               leftIcon={<UserCheck className="h-4 w-4 text-muted-foreground" />}
               error={errors.identifier?.message}
               {...register('identifier')}
             />
 
-            {/* Password Input */}
+            {/* Password Input with Visibility Toggle */}
             <Input
               label="Password"
               type={showPassword ? 'text' : 'password'}
@@ -148,7 +190,7 @@ export const LoginPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-muted-foreground hover:text-foreground focus:outline-none"
+                  className="text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -158,10 +200,10 @@ export const LoginPage: React.FC = () => {
               {...register('password')}
             />
 
-            {/* Remember Me & Dedicated Forgot Password Page Link */}
+            {/* Remember Me & Forgot Password Placeholder Link */}
             <div className="flex items-center justify-between pt-1">
               <Checkbox label="Remember me" {...register('rememberMe')} />
-              <Link to="/forgot-password" className="text-xs font-semibold text-primary hover:underline">
+              <Link to="/forgot-password" className="text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded">
                 Forgot password?
               </Link>
             </div>
@@ -170,24 +212,24 @@ export const LoginPage: React.FC = () => {
             <Button
               type="submit"
               variant="primary"
-              className="w-full h-11 mt-2"
+              className="w-full h-11 mt-2 text-sm font-bold shadow-sm"
               isLoading={isLoading}
               leftIcon={<GraduationCap className="h-4 w-4" />}
             >
-              Sign In to Student Portal
+              Sign In to Transport Portal
             </Button>
           </form>
-        </CardContent>
 
-        <CardFooter className="bg-muted/30 py-4 text-center justify-center border-t border-border">
-          <p className="text-xs text-muted-foreground">
-            Having trouble logging in? Contact the{' '}
-            <Link to="/help" className="font-semibold text-primary hover:underline">
-              Transport Helpdesk
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
+          <div className="mt-8 pt-4 border-t border-border/80 text-center">
+            <p className="text-xs text-muted-foreground">
+              Having trouble logging in? Contact{' '}
+              <Link to="/help" className="font-semibold text-primary hover:underline">
+                Transport Helpdesk Room 104
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

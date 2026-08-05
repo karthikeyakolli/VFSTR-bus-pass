@@ -6,7 +6,7 @@ import { Footer } from './components/Footer';
 import { Container } from './components/Container';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, CreditCard, Route, FileText, Bell, User } from 'lucide-react';
+import { LayoutDashboard, CreditCard, Route, FileText, Bell, User, Bus } from 'lucide-react';
 
 export const StudentLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,13 +16,16 @@ export const StudentLayout: React.FC = () => {
   const { logout } = useAuth();
 
   const studentNavItems: SidebarItem[] = [
-    { label: 'Overview', href: '/student', icon: <LayoutDashboard className="h-4 w-4" /> },
-    { label: 'My Transport', href: '/student/routes', icon: <Route className="h-4 w-4" /> },
-    { label: 'My Bus Pass', href: '/student/pass', icon: <FileText className="h-4 w-4" /> },
-    { label: 'Applications', href: '/student/applications', icon: <FileText className="h-4 w-4" /> },
+    { label: 'Home', href: '/student', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'Transport', href: '/student/routes', icon: <Bus className="h-4 w-4" /> },
+    { label: 'Bus Pass', href: '/student/pass', icon: <FileText className="h-4 w-4" /> },
+    { label: 'Requests', href: '/student/applications', icon: <FileText className="h-4 w-4" /> },
     { label: 'Payments', href: '/student/payments', icon: <CreditCard className="h-4 w-4" /> },
-    { label: 'Notifications', href: '/student/notifications', icon: <Bell className="h-4 w-4" /> },
+    { label: 'Fees', href: '/student/routes', icon: <CreditCard className="h-4 w-4" /> },
+    { label: 'Routes', href: '/student/routes', icon: <Route className="h-4 w-4" /> },
+    { label: 'Notices', href: '/student/notifications', icon: <Bell className="h-4 w-4" /> },
     { label: 'Support', href: '/help', icon: <User className="h-4 w-4" /> },
+    { label: 'Profile', href: '/student/profile', icon: <User className="h-4 w-4" /> },
   ];
 
   const handleLogout = () => {

@@ -11,6 +11,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useToast } from '@/hooks/useToast';
 import { NotificationItem } from '@/types';
+import { PageLayout } from '@/layouts/components/PageLayout';
 import {
   Bell,
   CheckCheck,
@@ -22,6 +23,7 @@ import {
   Clock,
   Eye,
   RefreshCw,
+  Pin,
 } from 'lucide-react';
 
 type NotificationCategory = 'All' | 'Renewals' | 'Announcements' | 'Payment Updates' | 'Application Updates' | 'Transport Notices';
@@ -149,11 +151,11 @@ export const NotificationsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-page">
+    <PageLayout className="max-w-4xl mx-auto">
       {/* Section Header */}
       <SectionHeader
-        title="Campus Transport Notifications"
-        subtitle="Stay updated on pass approvals, schedule changes, and announcements"
+        title="Campus Transport Notices & Bulletins"
+        subtitle="Stay updated on pass approvals, schedule changes, and transport announcements"
         badge={
           unreadCount > 0 ? (
             <Badge variant="destructive">{unreadCount} Unread</Badge>
@@ -175,6 +177,26 @@ export const NotificationsPage: React.FC = () => {
           </div>
         }
       />
+
+      {/* Pinned Important Notices */}
+      <Card className="p-5 border-2 border-primary/20 bg-card space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+            <Pin className="h-4 w-4 text-primary shrink-0 rotate-45" /> Pinned Official Announcements
+          </span>
+          <Badge variant="secondary" className="text-[10px]">High Priority</Badge>
+        </div>
+
+        <div className="p-3.5 rounded-xl border border-primary/30 bg-primary/5 text-xs text-foreground space-y-1">
+          <div className="flex items-center justify-between font-bold">
+            <span>Mid-Term Exam Special Departure Timings</span>
+            <span className="text-[10px] text-muted-foreground font-normal">Active Today</span>
+          </div>
+          <p className="text-muted-foreground leading-relaxed">
+            Special return buses will depart Vadlamudi Campus at 01:30 PM & 05:00 PM during exam week.
+          </p>
+        </div>
+      </Card>
 
       {/* Category Tabs & Search Bar */}
       <Card className="p-4 border-2 border-border bg-card">
@@ -326,6 +348,6 @@ export const NotificationsPage: React.FC = () => {
           </div>
         </Dialog>
       )}
-    </div>
+    </PageLayout>
   );
 };

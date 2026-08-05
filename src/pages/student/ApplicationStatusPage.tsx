@@ -7,6 +7,7 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Input } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Dialog } from '@/components/ui/Dialog';
+import { PageLayout } from '@/layouts/components/PageLayout';
 import {
   FileText,
   Clock,
@@ -230,7 +231,7 @@ export const ApplicationStatusPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-page">
+    <PageLayout className="max-w-4xl mx-auto">
       {/* Section Header */}
       <SectionHeader
         title="Bus Pass Application Status"
@@ -441,6 +442,6 @@ export const ApplicationStatusPage: React.FC = () => {
           </div>
         </Dialog>
       )}
-    </div>
+    </PageLayout>
   );
 };

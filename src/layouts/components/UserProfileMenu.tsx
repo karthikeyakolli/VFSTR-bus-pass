@@ -5,6 +5,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
+import { useTheme } from '@/hooks/useTheme';
 
 export const UserProfileMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,6 +15,7 @@ export const UserProfileMenu: React.FC = () => {
 
   const { user, logout } = useAuth();
   const { studentProfile } = useUser();
+  const { theme, setTheme } = useTheme();
 
   const userName = user?.name || studentProfile.name;
   const userSubtext = `${studentProfile.regNo} • CSE`;
@@ -89,13 +91,17 @@ export const UserProfileMenu: React.FC = () => {
 
               <button
                 onClick={() => {
-                  setIsOpen(false);
-                  navigate('/student/settings');
+                  setTheme(theme === 'dark' ? 'light' : 'dark');
                 }}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-colors"
+                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-colors"
               >
-                <SunMoon className="h-4 w-4 text-muted-foreground" />
-                <span>Appearance</span>
+                <div className="flex items-center gap-2.5">
+                  <SunMoon className="h-4 w-4 text-muted-foreground" />
+                  <span>Appearance</span>
+                </div>
+                <span className="text-[10px] font-bold uppercase text-primary bg-primary/10 px-2 py-0.5 rounded">
+                  {theme}
+                </span>
               </button>
 
               <div className="my-1 border-t border-border" />

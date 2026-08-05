@@ -4,69 +4,80 @@
 
 @layer base {
   :root {
-    --background: 0 0% 99%;
-    --foreground: 224 71.4% 4.1%;
+    /* Warm Off-White Background */
+    --background: 0 0% 98%;
+    --foreground: 220 20% 12%;
 
+    /* Pure White Cards */
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
+    --card-foreground: 220 20% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
+    --popover-foreground: 220 20% 12%;
 
-    /* VFSTR Maroon #721f31 */
-    --primary: 347 57% 28%;
-    --primary-hover: 347 57% 23%;
+    /* Soft Crimson (Primary Accent) */
+    --primary: 348 55% 32%;
+    --primary-hover: 348 55% 26%;
     --primary-foreground: 0 0% 98%;
 
-    /* Gold #d4af37 */
-    --secondary: 46 65% 52%;
-    --secondary-foreground: 224 71.4% 4.1%;
+    /* Muted Royal Blue (Secondary Accent) */
+    --secondary: 215 40% 38%;
+    --secondary-hover: 215 40% 32%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
 
-    --accent: 347 57% 96%;
-    --accent-foreground: 347 57% 28%;
+    --accent: 348 50% 96%;
+    --accent-foreground: 348 55% 32%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
+    /* Muted Red Destructive */
+    --destructive: 350 65% 48%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 347 57% 28%;
+    /* Light Neutral Gray Borders & Inputs */
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 348 55% 32%;
 
-    --radius: 0.625rem;
+    /* Standardized Border Radius */
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
+    /* Charcoal Background (No pitch black) */
+    --background: 222 20% 10%;
+    --foreground: 210 20% 95%;
 
-    --card: 224 71.4% 6.5%;
-    --card-foreground: 210 20% 98%;
+    /* Slate Cards */
+    --card: 222 18% 14%;
+    --card-foreground: 210 20% 95%;
 
-    --popover: 224 71.4% 6.5%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 222 18% 14%;
+    --popover-foreground: 210 20% 95%;
 
-    --primary: 347 57% 38%;
-    --primary-hover: 347 57% 45%;
+    /* Soft Crimson Dark Mode */
+    --primary: 348 55% 45%;
+    --primary-hover: 348 55% 52%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 46 65% 52%;
-    --secondary-foreground: 224 71.4% 4.1%;
+    /* Muted Royal Blue Dark Mode */
+    --secondary: 215 45% 58%;
+    --secondary-hover: 215 45% 65%;
+    --secondary-foreground: 222 20% 10%;
 
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
+    --muted: 222 15% 20%;
+    --muted-foreground: 217 12% 65%;
 
-    --accent: 347 57% 15%;
-    --accent-foreground: 347 57% 85%;
+    --accent: 348 40% 18%;
+    --accent-foreground: 348 55% 85%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
+    --destructive: 350 55% 42%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 347 57% 45%;
+    --border: 222 15% 22%;
+    --input: 222 15% 22%;
+    --ring: 348 55% 52%;
   }
 }
 
@@ -105,6 +116,15 @@
 
 .animate-page {
   animation: page-enter 0.25s ease-out both;
+}
+
+/* Official University Panel Tokens */
+.official-panel {
+  @apply bg-card border border-border/80 shadow-card;
+}
+
+.official-modal {
+  @apply bg-card border border-border shadow-dialog;
 }
 
 /* Custom Scrollbar */

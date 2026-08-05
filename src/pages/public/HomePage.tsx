@@ -69,10 +69,11 @@ export const HomePage: React.FC = () => {
   ];
 
   const processSteps = [
-    { step: '01', title: 'Submit Application', description: 'Log in with your VFSTR student credentials and select your preferred pickup stop.', icon: <FileCheck className="h-5 w-5" /> },
-    { step: '02', title: 'Transport Fee Payment', description: 'Pay the annual route fee online via authorized university payment gateway.', icon: <CreditCard className="h-5 w-5" /> },
-    { step: '03', title: 'Transport Cell Audit', description: 'Transport desk verifies fee payment and approves pass allocation within 24 hours.', icon: <ShieldCheck className="h-5 w-5" /> },
-    { step: '04', title: 'Digital Pass Active', description: 'Access your active digital pass anytime on your smartphone for campus travel.', icon: <CheckCircle2 className="h-5 w-5" /> },
+    { step: '01', title: 'Login', description: 'Access the portal using your official VFSTR student credentials or roll number.', icon: <GraduationCap className="h-5 w-5" /> },
+    { step: '02', title: 'Transport Status', description: 'Check your current enrollment status or view available bus routes across AP.', icon: <Compass className="h-5 w-5" /> },
+    { step: '03', title: 'Apply / Manage Pass', description: 'Submit a new pass application or manage your existing route allocation.', icon: <FileCheck className="h-5 w-5" /> },
+    { step: '04', title: 'Payment', description: 'Clear annual transport fees securely via integrated university payment gateways.', icon: <CreditCard className="h-5 w-5" /> },
+    { step: '05', title: 'Travel', description: 'Show your active digital QR bus pass on your phone to board campus buses daily.', icon: <Bus className="h-5 w-5" /> },
   ];
 
   const campusHighlights = [
@@ -333,7 +334,7 @@ export const HomePage: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {processSteps.map((step, idx) => (
               <Card key={idx} className="p-6 relative flex flex-col gap-3 border-2 border-border">
                 <span className="text-xs font-extrabold text-primary tracking-widest">{step.step}</span>

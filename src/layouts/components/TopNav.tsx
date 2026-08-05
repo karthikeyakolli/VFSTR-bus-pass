@@ -20,20 +20,20 @@ export const TopNav: React.FC<TopNavProps> = ({ onMobileMenuToggle }) => {
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
     const path = location.pathname;
     if (path.startsWith('/student')) {
-      const items: BreadcrumbItem[] = [{ label: 'Overview', href: '/student' }];
-      if (path === '/student/apply') items.push({ label: 'Apply Bus Pass' });
-      else if (path === '/student/renew') items.push({ label: 'Renew Pass' });
-      else if (path === '/student/pass') items.push({ label: 'My Bus Pass' });
+      const items: BreadcrumbItem[] = [{ label: 'Home', href: '/student' }];
+      if (path === '/student/apply') items.push({ label: 'Apply' });
+      else if (path === '/student/renew') items.push({ label: 'Renew' });
+      else if (path === '/student/pass') items.push({ label: 'Bus Pass' });
       else if (path === '/student/payments') items.push({ label: 'Payments' });
-      else if (path === '/student/routes') items.push({ label: 'My Transport' });
-      else if (path === '/student/notifications') items.push({ label: 'Notifications' });
-      else if (path === '/student/profile') items.push({ label: 'My Profile' });
-      else if (path === '/student/applications') items.push({ label: 'Applications' });
-      else if (path === '/student/settings') items.push({ label: 'Appearance' });
+      else if (path === '/student/routes') items.push({ label: 'Routes & Fees' });
+      else if (path === '/student/notifications') items.push({ label: 'Notices' });
+      else if (path === '/student/profile') items.push({ label: 'Profile' });
+      else if (path === '/student/applications') items.push({ label: 'Requests' });
+      else if (path === '/student/settings') items.push({ label: 'Settings' });
       return items;
     }
 
-    return [{ label: 'Portal Home', href: '/' }];
+    return [{ label: 'Home', href: '/' }];
   };
 
   return (

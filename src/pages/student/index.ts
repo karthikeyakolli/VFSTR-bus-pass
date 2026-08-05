@@ -5,6 +5,6 @@ export * from './ApplyPassPage';
 export * from './RenewPassPage';
 export * from './StudentRoutesPage';
 export * from './NotificationsPage';
-export * from './StudentSettingsPage';
+
 export * from './ApplicationStatusPage';
 export * from './PaymentHistoryPage';

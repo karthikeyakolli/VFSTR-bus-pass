@@ -1,12 +1,16 @@
 import React, { createContext, useState, useCallback, useEffect } from 'react';
 import { User, UserRole } from '@/types';
+import { AuthService } from '@/services/AuthService';
 
 export interface AuthContextType {
   user: User | null;
   role: UserRole | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (role: UserRole, identifier: string, rememberMe?: boolean) => Promise<boolean>;
   logout: () => void;
+  updatePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  requestPasswordReset: (identifier: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,53 +29,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   });
 
-  // Role is always derived from the authenticated user — never defaults to a role
   const [role, setRole] = useState<UserRole | null>(() => user?.role ?? null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     setRole(user?.role ?? null);
   }, [user]);
 
+  // Validate session on app initialization
+  useEffect(() => {
+    const validateSession = async () => {
+      try {
+        const currentUser = await AuthService.getCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
+        }
+      } catch {
+        // Fallback to local session
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    validateSession();
+  }, []);
+
   const login = useCallback(async (newRole: UserRole, identifier: string, rememberMe = true): Promise<boolean> => {
-    // Simulate network latency for authenticating
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    const response = await AuthService.login({ identifier, role: newRole });
 
-    let newUser: User;
+    if (response.user) {
+      setUser(response.user);
+      setRole(response.user.role);
 
-    if (newRole === 'admin') {
-      newUser = {
-        id: 'adm_1042',
-        name: 'Dr. M. R. K. Murthy',
-        email: 'transport.officer@vignan.ac.in',
-        role: 'admin',
-      };
-    } else {
-      newUser = {
-        id: 'usr_04001',
-        name: 'K. S. V. Prasad',
-        email: `${identifier.toLowerCase()}@vignan.ac.in`,
-        role: 'student',
-      };
+      const sessionPayload = JSON.stringify({ user: response.user });
+      if (rememberMe) {
+        localStorage.setItem('vfstr-user-session', sessionPayload);
+      } else {
+        sessionStorage.setItem('vfstr-user-session', sessionPayload);
+      }
+      return true;
     }
 
-    setUser(newUser);
-    setRole(newRole);
-
-    const sessionPayload = JSON.stringify({ user: newUser, token: 'mock-jwt-token-2026' });
-    if (rememberMe) {
-      localStorage.setItem('vfstr-user-session', sessionPayload);
-    } else {
-      sessionStorage.setItem('vfstr-user-session', sessionPayload);
-    }
-
-    return true;
+    return false;
   }, []);
 
   const logout = useCallback(() => {
+    AuthService.logout();
     setUser(null);
-    setRole(null); // Explicitly null — not a default role
+    setRole(null);
     localStorage.removeItem('vfstr-user-session');
     sessionStorage.removeItem('vfstr-user-session');
+  }, []);
+
+  const updatePassword = useCallback(async (newPassword: string) => {
+    return AuthService.updatePassword(newPassword);
+  }, []);
+
+  const requestPasswordReset = useCallback(async (identifier: string) => {
+    return AuthService.requestPasswordReset(identifier);
   }, []);
 
   return (
@@ -80,8 +94,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         role,
         isAuthenticated: Boolean(user),
+        isLoading,
         login,
         logout,
+        updatePassword,
+        requestPasswordReset,
       }}
     >
       {children}

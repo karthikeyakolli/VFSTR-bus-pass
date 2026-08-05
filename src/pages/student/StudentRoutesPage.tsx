@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -6,6 +7,7 @@ import { StatusChip } from '@/components/ui/StatusChip';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/hooks/useUser';
+import { PageLayout } from '@/layouts/components/PageLayout';
 import {
   Bus,
   MapPin,
@@ -18,6 +20,8 @@ import {
   UserCheck,
   Building,
   Compass,
+  CheckCircle2,
+  QrCode,
 } from 'lucide-react';
 
 export interface RouteStop {
@@ -84,24 +88,75 @@ export const StudentRoutesPage: React.FC = () => {
       stop.landmark.toLowerCase().includes(stopSearch.toLowerCase())
   );
 
+  const lifecycleSteps = [
+    { step: '01', title: 'Application', desc: 'Online request submitted', done: true },
+    { step: '02', title: 'Approval', desc: 'Transport cell verified', done: true },
+    { step: '03', title: 'Pass Generated', desc: 'Active digital pass', done: true },
+    { step: '04', title: 'Renewal', desc: 'Open 30 days prior', done: false },
+    { step: '05', title: 'Expiration', desc: '31 May 2027', done: false },
+  ];
+
   return (
-    <div className="space-y-6 max-w-5xl mx-auto animate-page">
+    <PageLayout>
       {/* Section Header */}
       <SectionHeader
-        title="Transport Route Explorer"
-        subtitle="Assigned bus details, stop sequence timetable, driver info, and campus route diagram"
-        badge={<Badge variant="secondary">Assigned: {assignedRouteDetails.routeName}</Badge>}
+        title="Transport Information Center"
+        subtitle="Primary student transport workspace: route schedules, stop timetables, driver details, and pass lifecycle"
+        badge={<StatusChip status={studentProfile.isTransportUser ? "active" : "pending"} label={studentProfile.isTransportUser ? "Transport Enrolled" : "Not Enrolled"} />}
         actions={
-          <Button
-            variant="primary"
-            size="sm"
-            leftIcon={<Navigation className="h-3.5 w-3.5" />}
-            onClick={() => window.open('https://vignan.ac.in/transport/tracking', '_blank', 'noopener,noreferrer')}
-          >
-            Track Bus (External App)
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link to="/student/pass">
+              <Button variant="outline" size="sm" leftIcon={<QrCode className="h-3.5 w-3.5" />}>
+                View Bus Pass
+              </Button>
+            </Link>
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<Navigation className="h-3.5 w-3.5" />}
+              onClick={() => window.open('https://vignan.ac.in/transport/tracking', '_blank', 'noopener,noreferrer')}
+            >
+              Track Bus (GPS)
+            </Button>
+          </div>
         }
       />
+
+      {/* 1. Transport Lifecycle Timeline Card */}
+      <Card className="p-5 border-2 border-primary/20 bg-card space-y-4">
+        <SectionHeader
+          title="Transport Pass Lifecycle Status"
+          subtitle="Progress from online application to annual pass expiration"
+          badge={<Badge variant="secondary">AY 2026-2027</Badge>}
+          className="pb-2"
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 pt-2">
+          {lifecycleSteps.map((s, idx) => (
+            <div
+              key={idx}
+              className={`p-3 rounded-xl border flex flex-col justify-between gap-2 relative ${
+                s.done
+                  ? 'border-primary/40 bg-primary/5 text-foreground'
+                  : 'border-border bg-muted/30 text-muted-foreground'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-primary">{s.step}</span>
+                {s.done ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                ) : (
+                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-foreground">{s.title}</h4>
+                <p className="text-[11px] text-muted-foreground">{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* 1. Main Route & Vehicle Summary Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -342,6 +397,6 @@ export const StudentRoutesPage: React.FC = () => {
           ))}
         </div>
       </Card>
-    </div>
+    </PageLayout>
   );
 };

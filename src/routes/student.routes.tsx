@@ -4,7 +4,6 @@ import { ProtectedRoute } from './ProtectedRoute';
 import {
   StudentDashboardPage,
   StudentProfilePage,
-  StudentSettingsPage,
   ApplyPassPage,
   RenewPassPage,
   DigitalPassPage,
@@ -29,7 +28,6 @@ export const studentRoutes: RouteObject = {
         { path: '/student/pass', element: <DigitalPassPage /> },
         { path: '/student/payments', element: <PaymentHistoryPage /> },
         { path: '/student/routes', element: <StudentRoutesPage /> },
-        { path: '/student/settings', element: <StudentSettingsPage /> },
         { path: '/student/notifications', element: <NotificationsPage /> },
         { path: '/help', element: <HelpPage /> },
       ],

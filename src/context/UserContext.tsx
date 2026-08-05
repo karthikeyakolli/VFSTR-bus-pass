@@ -15,10 +15,17 @@ const initialStudentProfile: StudentProfile = {
   role: 'student',
   regNo: '211FA04001',
   department: 'Computer Science & Engineering',
-  academicYear: '4th Year (2023 - 2027)',
+  program: 'B.Tech',
+  academicYear: '2026 - 2027',
+  semester: 'II Year - I Sem',
+  section: 'Section 1',
   phone: '+91 98765 43210',
   emergencyContact: '+91 98765 00000',
+  counsellor: 'Dr.Md. Oqail Ahmed',
+  eligibility: 'transport_user',
+  transportStatus: 'active',
   pickupPoint: 'Old Bus Stand, Guntur (Route #14)',
+  isTransportUser: true,
 };
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

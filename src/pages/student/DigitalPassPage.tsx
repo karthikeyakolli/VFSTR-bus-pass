@@ -10,6 +10,7 @@ import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
 import { APP_CONFIG } from '@/config/app.config';
 import { downloadDigitalPassPdf } from '@/utils/downloadReceipt';
+import { PageLayout } from '@/layouts/components/PageLayout';
 import {
   Bus,
   Calendar,
@@ -67,8 +68,38 @@ export const DigitalPassPage: React.FC = () => {
     window.print();
   };
 
+  if (!studentProfile.isTransportUser) {
+    return (
+      <PageLayout>
+        <SectionHeader
+          title="Digital Bus Pass Credentials"
+          subtitle="Vignan Foundation for Science, Technology & Research Transport Pass"
+        />
+        <Card className="p-8 text-center max-w-2xl mx-auto space-y-4 border-2 border-primary/20 bg-card">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mx-auto">
+            <Bus className="h-8 w-8" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground">Not Enrolled in University Transport</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
+            You do not currently have an active bus pass subscription. Apply for university transport services to get assigned to a route, seat, and digital bus pass.
+          </p>
+          <div className="pt-2 flex items-center justify-center gap-3">
+            <Link to="/student/routes">
+              <Button variant="outline" size="md">View Routes & Fees</Button>
+            </Link>
+            <Link to="/student/apply">
+              <Button variant="primary" size="md" leftIcon={<Bus className="h-4 w-4" />}>
+                Apply for Bus Pass
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </PageLayout>
+    );
+  }
+
   return (
-    <div className="space-y-6 animate-page">
+    <PageLayout>
       {/* Section Header with Actions */}
       <SectionHeader
         title="Official Digital Bus Pass"
@@ -404,6 +435,6 @@ export const DigitalPassPage: React.FC = () => {
           </Card>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 };

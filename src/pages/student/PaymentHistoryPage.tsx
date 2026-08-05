@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
 import { downloadOfficialReceiptPdf } from '@/utils/downloadReceipt';
+import { PageLayout } from '@/layouts/components/PageLayout';
 import {
   CreditCard,
   Download,
@@ -21,6 +22,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
+  AlertTriangle,
+  Building,
 } from 'lucide-react';
 
 import { MOCK_TRANSACTIONS, type PaymentTransaction } from '@/constants/mockData';
@@ -111,7 +114,7 @@ export const PaymentHistoryPage: React.FC = () => {
     .reduce((sum, t) => sum + t.amount, 0);
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto animate-page">
+    <PageLayout className="max-w-5xl mx-auto">
       {/* Section Header */}
       <SectionHeader
         title="Transport Fee Payment History"
@@ -128,6 +131,29 @@ export const PaymentHistoryPage: React.FC = () => {
           </Button>
         }
       />
+
+      {/* Online Gateway Placeholder & Offline Cash Desk Info Banner */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-50/20 dark:bg-amber-950/20 text-xs text-muted-foreground space-y-1">
+          <div className="flex items-center gap-2 font-bold text-foreground">
+            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+            <span>Online SBI Payment Gateway Integration</span>
+          </div>
+          <p className="leading-relaxed">
+            Direct UPI/NetBanking payment portal integration is currently under scheduled maintenance. Online fee submission will launch in the next release.
+          </p>
+        </div>
+
+        <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 text-xs text-muted-foreground space-y-1">
+          <div className="flex items-center gap-2 font-bold text-foreground">
+            <Building className="h-4 w-4 text-primary shrink-0" />
+            <span>Offline Cash Desk Verification</span>
+          </div>
+          <p className="leading-relaxed">
+            Submit bank challan receipts or cash at Admin Block Room 104 (Finance Cell). Offline receipts are verified within 24 hours.
+          </p>
+        </div>
+      </div>
 
       {/* Metric Cards Summary Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -469,6 +495,6 @@ export const PaymentHistoryPage: React.FC = () => {
           </div>
         </Dialog>
       )}
-    </div>
+    </PageLayout>
   );
 };

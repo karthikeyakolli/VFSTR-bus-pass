@@ -8,6 +8,7 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Dialog } from '@/components/ui/Dialog';
 import { ActivityTimeline } from '@/components/ui';
 import { useUser } from '@/hooks/useUser';
+import { PageLayout } from '@/layouts/components/PageLayout';
 import {
   Bus,
   Ticket,
@@ -57,16 +58,20 @@ export const StudentDashboardPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-page">
+    <PageLayout>
       {/* 1. Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-accent/40 to-background dark:from-primary/20 dark:via-primary/5 dark:to-transparent p-6 sm:p-8 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
+      <div className="rounded-2xl border border-primary/20 bg-card p-6 sm:p-8 shadow-card">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="text-xs font-semibold">
                 VFSTR Transport Portal
               </Badge>
-              <StatusChip status="active" />
+              {studentProfile.isTransportUser ? (
+                <StatusChip status="active" label="Enrolled Student" />
+              ) : (
+                <Badge variant="outline" className="text-xs">Not Enrolled in Bus Transport</Badge>
+              )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
               Welcome back, {studentProfile.name}!
@@ -77,142 +82,209 @@ export const StudentDashboardPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0">
-            <Button
-              variant="primary"
-              size="md"
-              leftIcon={<QrCode className="h-4 w-4" />}
-              onClick={() => setQrDialogOpen(true)}
-              className="shadow-sm hover:shadow transition-all"
-            >
-              View QR Pass
-            </Button>
-            <Link to="/student/pass">
-              <Button variant="outline" size="md" rightIcon={<ExternalLink className="h-4 w-4" />}>
-                My Bus Pass
-              </Button>
-            </Link>
+            {studentProfile.isTransportUser ? (
+              <>
+                <Button
+                  variant="primary"
+                  size="md"
+                  leftIcon={<QrCode className="h-4 w-4" />}
+                  onClick={() => setQrDialogOpen(true)}
+                  className="shadow-sm hover:shadow transition-all"
+                >
+                  View QR Pass
+                </Button>
+                <Link to="/student/pass">
+                  <Button variant="outline" size="md" rightIcon={<ExternalLink className="h-4 w-4" />}>
+                    My Bus Pass
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <Link to="/student/apply">
+                <Button
+                  variant="primary"
+                  size="md"
+                  leftIcon={<Bus className="h-4 w-4" />}
+                  className="shadow-sm hover:shadow transition-all"
+                >
+                  Apply for Bus Pass
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
 
-      {/* 2. Top Metrics Grid: Pass Status, Renewal, Route & Bus */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Bus Pass Status Card */}
-        <Card className="p-5 border-2 border-primary/20 flex flex-col justify-between hover:border-primary/40 hover:shadow-md transition-all duration-200">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Digital Pass Status
-              </span>
-              <StatusChip status="active" />
-            </div>
-            <Link to="/student/pass" className="flex items-center gap-2 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
-              <Ticket className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
-              <span className="text-lg font-bold text-foreground truncate group-hover:text-primary transition-colors">{mockPassDetails.passNumber}</span>
-            </Link>
-            <p className="text-xs text-muted-foreground">
-              Valid: <span className="font-medium text-foreground">{mockPassDetails.validFrom} – {mockPassDetails.validUntil}</span>
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full mt-4 text-xs"
-            leftIcon={<QrCode className="h-3.5 w-3.5" />}
-            onClick={() => setQrDialogOpen(true)}
-          >
-            Show Pass QR Code
-          </Button>
-        </Card>
-
-        {/* Renewal Status Card */}
-        <Card className="p-5 flex flex-col justify-between hover:border-primary/30 hover:shadow-md transition-all duration-200">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Pass Renewal
-              </span>
-              <Badge variant="success" dot>Fully Paid</Badge>
-            </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold text-foreground">{mockPassDetails.daysRemaining}</span>
-              <span className="text-xs text-muted-foreground font-medium">Days Remaining</span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Annual Fee: <span className="font-semibold text-foreground">₹{mockPassDetails.feePaid.toLocaleString()}</span> (Verified)
-            </p>
-          </div>
-          <Link to="/student/renew" className="block w-full">
-            <Button variant="secondary" size="sm" className="w-full mt-4 text-xs" leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>
-              Renew for Next Term
-            </Button>
-          </Link>
-        </Card>
-
-        {/* Assigned Route Card */}
-        <Card className="p-5 flex flex-col justify-between hover:border-primary/30 hover:shadow-md transition-all duration-200">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Assigned Route
-              </span>
-              <Badge variant="outline">{mockPassDetails.routeNumber}</Badge>
-            </div>
-            <div>
-              <Link to="/student/routes" className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate block">
-                {mockPassDetails.routeName}
-              </Link>
-              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                <span className="truncate">{mockPassDetails.pickupPoint}</span>
-              </p>
-            </div>
-            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-              <span className="flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5 text-emerald-500" /> {mockPassDetails.boardingTime}
-              </span>
-              <span className="flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5 text-blue-500" /> {mockPassDetails.eveningReturn}
-              </span>
-            </div>
-          </div>
-          <Link to="/student/routes" className="block w-full">
-            <Button variant="outline" size="sm" className="w-full mt-4 text-xs" rightIcon={<ChevronRight className="h-3.5 w-3.5" />}>
-              View All Route Stops
-            </Button>
-          </Link>
-        </Card>
-
-        {/* Assigned Bus Card */}
-        <Card className="p-5 flex flex-col justify-between hover:border-primary/30 hover:shadow-md transition-all duration-200">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Assigned Bus & Driver
-              </span>
-              <Badge variant="secondary">{mockPassDetails.busId}</Badge>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <Bus className="h-4 w-4 text-primary shrink-0" />
-                <span className="text-sm font-bold text-foreground">{mockPassDetails.busRegNo}</span>
+      {/* 2. Top Information Grid */}
+      {studentProfile.isTransportUser ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Bus Pass Status Card */}
+          <Card className="p-5 border-2 border-primary/20 flex flex-col justify-between hover:border-primary/40 hover:shadow-md transition-all duration-200">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Digital Pass Status
+                </span>
+                <StatusChip status="active" />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Driver: <span className="font-medium text-foreground">{mockPassDetails.driverName}</span>
+              <Link to="/student/pass" className="flex items-center gap-2 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
+                <Ticket className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
+                <span className="text-lg font-bold text-foreground truncate group-hover:text-primary transition-colors">{mockPassDetails.passNumber}</span>
+              </Link>
+              <p className="text-xs text-muted-foreground">
+                Valid: <span className="font-medium text-foreground">{mockPassDetails.validFrom} – {mockPassDetails.validUntil}</span>
               </p>
             </div>
-            <p className="text-xs text-muted-foreground flex items-center gap-1 pt-1">
-              <Phone className="h-3.5 w-3.5 text-primary shrink-0" />
-              <span>{mockPassDetails.driverPhone}</span>
-            </p>
-          </div>
-          <Link to="/help" className="block w-full">
-            <Button variant="ghost" size="sm" className="w-full mt-4 text-xs" leftIcon={<Phone className="h-3.5 w-3.5" />}>
-              Contact Transport Helpdesk
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-4 text-xs"
+              leftIcon={<QrCode className="h-3.5 w-3.5" />}
+              onClick={() => setQrDialogOpen(true)}
+            >
+              Show Pass QR Code
             </Button>
-          </Link>
-        </Card>
-      </div>
+          </Card>
+
+          {/* Renewal Status Card */}
+          <Card className="p-5 flex flex-col justify-between hover:border-primary/30 hover:shadow-md transition-all duration-200">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Pass Renewal
+                </span>
+                <Badge variant="success" dot>Fully Paid</Badge>
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-bold text-foreground">{mockPassDetails.daysRemaining}</span>
+                <span className="text-xs text-muted-foreground font-medium">Days Remaining</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Annual Fee: <span className="font-semibold text-foreground">₹{mockPassDetails.feePaid.toLocaleString()}</span> (Verified)
+              </p>
+            </div>
+            <Link to="/student/renew" className="block w-full">
+              <Button variant="secondary" size="sm" className="w-full mt-4 text-xs" leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>
+                Renew for Next Term
+              </Button>
+            </Link>
+          </Card>
+
+          {/* Assigned Route Card */}
+          <Card className="p-5 flex flex-col justify-between hover:border-primary/30 hover:shadow-md transition-all duration-200">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Assigned Route
+                </span>
+                <Badge variant="outline">{mockPassDetails.routeNumber}</Badge>
+              </div>
+              <div>
+                <Link to="/student/routes" className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate block">
+                  {mockPassDetails.routeName}
+                </Link>
+                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                  <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span className="truncate">{mockPassDetails.pickupPoint}</span>
+                </p>
+              </div>
+              <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5 text-emerald-500" /> {mockPassDetails.boardingTime}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5 text-blue-500" /> {mockPassDetails.eveningReturn}
+                </span>
+              </div>
+            </div>
+            <Link to="/student/routes" className="block w-full">
+              <Button variant="outline" size="sm" className="w-full mt-4 text-xs" rightIcon={<ChevronRight className="h-3.5 w-3.5" />}>
+                View All Route Stops
+              </Button>
+            </Link>
+          </Card>
+
+          {/* Assigned Bus Card */}
+          <Card className="p-5 flex flex-col justify-between hover:border-primary/30 hover:shadow-md transition-all duration-200">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Assigned Bus & Driver
+                </span>
+                <Badge variant="secondary">{mockPassDetails.busId}</Badge>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <Bus className="h-4 w-4 text-primary shrink-0" />
+                  <span className="text-sm font-bold text-foreground">{mockPassDetails.busRegNo}</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Driver: <span className="font-medium text-foreground">{mockPassDetails.driverName}</span>
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1 pt-1">
+                <Phone className="h-3.5 w-3.5 text-primary shrink-0" />
+                <span>{mockPassDetails.driverPhone}</span>
+              </p>
+            </div>
+            <Link to="/help" className="block w-full">
+              <Button variant="ghost" size="sm" className="w-full mt-4 text-xs" leftIcon={<Phone className="h-3.5 w-3.5" />}>
+                Contact Transport Helpdesk
+              </Button>
+            </Link>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="p-5 border-2 border-primary/20 flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Transport Status</span>
+                <Badge variant="outline">Unregistered</Badge>
+              </div>
+              <h3 className="text-base font-bold text-foreground">Apply for Bus Pass</h3>
+              <p className="text-xs text-muted-foreground">Submit an online request to enroll in VFSTR daily bus transport service.</p>
+            </div>
+            <Link to="/student/apply" className="block w-full mt-4">
+              <Button variant="primary" size="sm" className="w-full text-xs" leftIcon={<Bus className="h-3.5 w-3.5" />}>
+                Start Application
+              </Button>
+            </Link>
+          </Card>
+
+          <Card className="p-5 flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bus Routes</span>
+                <Badge variant="secondary">24 Active Routes</Badge>
+              </div>
+              <h3 className="text-base font-bold text-foreground">Browse Routes & Stops</h3>
+              <p className="text-xs text-muted-foreground">Check pickup points across Guntur, Vijayawada, Tenali, and surrounding areas.</p>
+            </div>
+            <Link to="/student/routes" className="block w-full mt-4">
+              <Button variant="outline" size="sm" className="w-full text-xs" rightIcon={<ChevronRight className="h-3.5 w-3.5" />}>
+                View Routes & Fee Schedule
+              </Button>
+            </Link>
+          </Card>
+
+          <Card className="p-5 flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Helpdesk</span>
+                <Badge variant="secondary">Admin Block 104</Badge>
+              </div>
+              <h3 className="text-base font-bold text-foreground">Transport Enquiries</h3>
+              <p className="text-xs text-muted-foreground">Contact the Transport Cell for route inquiries or pass guidelines.</p>
+            </div>
+            <Link to="/help" className="block w-full mt-4">
+              <Button variant="ghost" size="sm" className="w-full text-xs" leftIcon={<Phone className="h-3.5 w-3.5" />}>
+                Visit Helpdesk Center
+              </Button>
+            </Link>
+          </Card>
+        </div>
+      )}
 
       {/* 3. Quick Actions Panel */}
       <Card className="p-5">
@@ -432,6 +504,6 @@ export const StudentDashboardPage: React.FC = () => {
           </div>
         </div>
       </Dialog>
-    </div>
+    </PageLayout>
   );
 };
