@@ -42,8 +42,8 @@ export const LoginPage: React.FC = () => {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      identifier: '251FA04564',
-      password: '251FA04564',
+      identifier: '251FA04001',
+      password: '251FA04001',
       rememberMe: true,
     },
   });

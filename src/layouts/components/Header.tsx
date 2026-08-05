@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { APP_CONFIG } from '@/config/app.config';
-import { Bus, Menu, X, Shield, GraduationCap } from 'lucide-react';
+import { Bus, Menu, X, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export interface HeaderProps {
@@ -56,13 +56,8 @@ export const Header: React.FC<HeaderProps> = ({ navItems = [] }) => {
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2">
             <Link to="/login">
-              <Button variant="outline" size="sm" leftIcon={<GraduationCap className="h-4 w-4" />}>
-                Student Portal
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="primary" size="sm" leftIcon={<Shield className="h-4 w-4" />}>
-                Admin Access
+              <Button variant="primary" size="sm" leftIcon={<GraduationCap className="h-4 w-4" />}>
+                Student Sign In
               </Button>
             </Link>
           </div>
@@ -95,13 +90,8 @@ export const Header: React.FC<HeaderProps> = ({ navItems = [] }) => {
           ))}
           <div className="flex flex-col gap-2 pt-2 border-t border-slate-200">
             <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="outline" size="sm" className="w-full justify-start" leftIcon={<GraduationCap className="h-4 w-4" />}>
-                Student Portal
-              </Button>
-            </Link>
-            <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="primary" size="sm" className="w-full justify-start" leftIcon={<Shield className="h-4 w-4" />}>
-                Admin Access
+              <Button variant="primary" size="sm" className="w-full justify-start" leftIcon={<GraduationCap className="h-4 w-4" />}>
+                Student Sign In
               </Button>
             </Link>
           </div>

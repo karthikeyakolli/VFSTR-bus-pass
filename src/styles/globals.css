@@ -4,45 +4,77 @@
 
 @layer base {
   :root {
-    /* Pure Crisp Light Theme System Palette */
-    --background: 210 30% 98%;      /* Soft Slate White #F8FAFC */
+    /* Modern Soft Academic Light Theme Palette */
+    --background: 210 20% 98%;      /* Warm Off-White #F8FAFC */
     --foreground: 222 47% 11%;      /* Deep Slate #0F172A */
 
-    /* Crisp White Elevation Surfaces */
+    /* Pure White Elevation Surfaces */
     --card: 0 0% 100%;             /* Pure White #FFFFFF */
     --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Premium Crimson Primary (VFSTR Official Identity) */
-    --primary: 348 70% 38%;         /* Rich Crimson #A31633 */
-    --primary-hover: 348 72% 30%;   /* Deep Maroon #830F26 */
+    /* Primary Accent: Soft Sky Blue */
+    --primary: 199 89% 48%;         /* Soft Sky Blue #0EA5E9 */
+    --primary-hover: 199 89% 38%;   /* Deep Sky Blue #0284C7 */
     --primary-foreground: 0 0% 100%;
 
-    /* Vibrant Royal Indigo Secondary Accent */
-    --secondary: 224 76% 48%;       /* Electric Indigo #1E40AF */
-    --secondary-hover: 224 80% 40%;
+    /* Secondary Accent: Light Indigo */
+    --secondary: 239 84% 67%;       /* Light Indigo #6366F1 */
+    --secondary-hover: 239 84% 57%; /* Deep Indigo #4F46E5 */
     --secondary-foreground: 0 0% 100%;
 
     /* Soft Slate Muted Surfaces */
-    --muted: 210 40% 96%;           /* Light Ice Slate #F1F5F9 */
+    --muted: 210 40% 96.5%;         /* Light Ice Slate #F1F5F9 */
     --muted-foreground: 215 16% 47%;/* Medium Slate Gray #64748B */
 
-    /* Soft Rose Highlights & Badges */
-    --accent: 348 85% 97%;          /* Ultra Soft Crimson Tint #FFF1F2 */
-    --accent-foreground: 348 75% 38%;
+    /* Soft Sky Blue Highlights & Badges */
+    --accent: 199 90% 95%;          /* Soft Sky Tint #E0F2FE */
+    --accent-foreground: 199 89% 38%;
 
-    /* Destructive Alert Red */
-    --destructive: 350 84% 56%;     /* Vivid Coral Red #EF4444 */
+    /* Destructive Alert: Soft Coral */
+    --destructive: 346 87% 60%;     /* Soft Coral #F43F5E */
     --destructive-foreground: 0 0% 100%;
 
     /* Light Clean Borders & Focus Ring */
-    --border: 214 32% 91%;          /* Clean Border Slate #E2E8F0 */
+    --border: 214 32% 91%;          /* Very Light Gray #E2E8F0 */
     --input: 214 32% 91%;
-    --ring: 348 70% 38%;
+    --ring: 199 89% 48%;
 
     --radius: 0.85rem;
+  }
+
+  .dark {
+    --background: 222 47% 9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 199 89% 48%;
+    --primary-hover: 199 89% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 239 84% 67%;
+    --secondary-hover: 239 84% 77%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 17%;
+    --accent-foreground: 199 89% 68%;
+
+    --destructive: 346 87% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 199 89% 48%;
   }
 }
 

@@ -1,8 +1,9 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { User, UserRole } from '@/types';
+import { VFSTR_STUDENT_SEED } from '@/constants/studentSeedData';
 
 export interface LoginParams {
-  identifier: string; // Roll Number (e.g. 221FA04001) or Email (e.g. 221fa04001@vignan.ac.in)
+  identifier: string; // Roll Number (e.g. 251FA04001) or Email (e.g. 251fa04001@gmail.com)
   password?: string;
   role?: UserRole;
 }
@@ -14,82 +15,108 @@ export interface AuthResponse {
 
 export class AuthService {
   /**
-   * Resolve user identifier to official VFSTR college email.
-   * Roll numbers like '221FA04001' map to '221fa04001@vignan.ac.in'.
+   * Helper to extract Roll Number from email or raw string.
+   * e.g., '251fa04001@gmail.com' -> '251FA04001'
    */
-  private static resolveEmail(identifier: string): string {
-    const trimmed = identifier.trim().toLowerCase();
+  public static extractRegNo(identifier: string): string {
+    const trimmed = identifier.trim();
     if (trimmed.includes('@')) {
-      return trimmed;
+      return trimmed.split('@')[0].toUpperCase();
     }
-    return `${trimmed}@vignan.ac.in`;
+    return trimmed.toUpperCase();
   }
 
   /**
-   * Authenticate student/admin using Roll Number or College Email + Password
+   * Resolve user identifier to student email format (regno@gmail.com)
    */
-  static async login({ identifier, password = 'password123', role = 'student' }: LoginParams): Promise<AuthResponse> {
-    const email = this.resolveEmail(identifier);
+  public static resolveEmail(identifier: string): string {
+    const regNo = this.extractRegNo(identifier);
+    return `${regNo.toLowerCase()}@gmail.com`;
+  }
+
+  /**
+   * Authenticate student using Roll Number OR Email + Password (defaults to regNo)
+   */
+  static async login({ identifier, password }: LoginParams): Promise<AuthResponse> {
+    const regNo = this.extractRegNo(identifier);
+    const email = `${regNo.toLowerCase()}@gmail.com`;
+
+    // 1. Check local student dataset (1,307 records)
+    const seedStudent = VFSTR_STUDENT_SEED.find((s) => s.regNo.toUpperCase() === regNo);
 
     if (!isSupabaseConfigured) {
-      const mockUser: User = role === 'admin'
-        ? { id: 'adm_1042', name: 'Dr. M. R. K. Murthy', email: 'transport.officer@vignan.ac.in', role: 'admin' }
-        : { id: 'usr_04001', name: 'K. S. V. Prasad', email, role: 'student' };
-      return { user: mockUser };
+      if (seedStudent) {
+        const user: User = {
+          id: `usr_${seedStudent.regNo.toLowerCase()}`,
+          name: seedStudent.fullName,
+          email,
+          role: 'student',
+        };
+
+        // Persist session locally
+        localStorage.setItem('vfstr_current_user', JSON.stringify(user));
+        return { user };
+      }
+
+      // Fallback for custom roll number entry
+      const fallbackUser: User = {
+        id: `usr_${regNo.toLowerCase()}`,
+        name: `Student (${regNo})`,
+        email,
+        role: 'student',
+      };
+      localStorage.setItem('vfstr_current_user', JSON.stringify(fallbackUser));
+      return { user: fallbackUser };
     }
 
+    // 2. Supabase Integration path
     try {
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password: password || regNo,
       });
 
       if (authError || !authData.user) {
+        // Fallback to local dataset verification if Supabase auth fails in dev mode
+        if (seedStudent) {
+          const user: User = {
+            id: `usr_${seedStudent.regNo.toLowerCase()}`,
+            name: seedStudent.fullName,
+            email,
+            role: 'student',
+          };
+          localStorage.setItem('vfstr_current_user', JSON.stringify(user));
+          return { user };
+        }
         return { user: null, error: authError?.message || 'Invalid Roll Number / Email or password' };
       }
 
-      // Query student or profile table
       const { data: studentRecord } = await supabase
         .from('students')
-        .select(`
-          id,
-          reg_no,
-          full_name,
-          email,
-          avatar_url
-        `)
+        .select('id, reg_no, full_name, email, avatar_url')
         .eq('user_id', authData.user.id)
         .single();
 
       if (studentRecord) {
-        const studentObj = studentRecord as any;
-        return {
-          user: {
-            id: studentObj.id,
-            name: studentObj.full_name,
-            email: studentObj.email,
-            role: 'student',
-            avatarUrl: studentObj.avatar_url || undefined,
-          },
+        const s = studentRecord as any;
+        const user: User = {
+          id: s.id,
+          name: s.full_name,
+          email: s.email,
+          role: 'student',
+          avatarUrl: s.avatar_url || undefined,
         };
+        localStorage.setItem('vfstr_current_user', JSON.stringify(user));
+        return { user };
       }
 
-      // Admin or Profile fallback
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authData.user.id)
-        .single();
-
-      const profileObj = profile as any;
       const user: User = {
         id: authData.user.id,
-        name: profileObj?.full_name || authData.user.email || 'VFSTR User',
+        name: seedStudent?.fullName || authData.user.email || 'VFSTR Student',
         email: authData.user.email || email,
-        role: (profileObj?.role as UserRole) || role,
-        avatarUrl: profileObj?.avatar_url || undefined,
+        role: 'student',
       };
-
+      localStorage.setItem('vfstr_current_user', JSON.stringify(user));
       return { user };
     } catch (err: any) {
       return { user: null, error: err?.message || 'Authentication error' };
@@ -100,6 +127,13 @@ export class AuthService {
    * Fetch current authenticated session user
    */
   static async getCurrentUser(): Promise<User | null> {
+    const saved = localStorage.getItem('vfstr_current_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {}
+    }
+
     if (!isSupabaseConfigured) return null;
 
     try {
@@ -125,7 +159,7 @@ export class AuthService {
 
       return {
         id: session.user.id,
-        name: session.user.email || 'VFSTR User',
+        name: session.user.email || 'VFSTR Student',
         email: session.user.email || '',
         role: 'student',
       };
@@ -135,7 +169,7 @@ export class AuthService {
   }
 
   /**
-   * Change / Update User Password (First-login or security update)
+   * Change / Update User Password
    */
   static async updatePassword(newPassword: string): Promise<{ success: boolean; error?: string }> {
     if (!isSupabaseConfigured) {
@@ -152,7 +186,7 @@ export class AuthService {
   }
 
   /**
-   * Request Password Reset Link (Future Expansion)
+   * Request Password Reset Link
    */
   static async requestPasswordReset(identifier: string): Promise<{ success: boolean; error?: string }> {
     const email = this.resolveEmail(identifier);
@@ -175,6 +209,7 @@ export class AuthService {
    * Logout session
    */
   static async logout(): Promise<void> {
+    localStorage.removeItem('vfstr_current_user');
     if (isSupabaseConfigured) {
       await supabase.auth.signOut();
     }

@@ -15,7 +15,7 @@ import {
 } from '@/pages';
 
 export const studentRoutes: RouteObject = {
-  element: <ProtectedRoute allowedRoles={['student', 'superadmin']} />,
+  element: <ProtectedRoute allowedRoles={['student']} />,
   children: [
     {
       element: <StudentLayout />,

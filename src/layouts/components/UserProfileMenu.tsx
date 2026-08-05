@@ -50,7 +50,7 @@ export const UserProfileMenu: React.FC = () => {
           onClick={() => setIsOpen(!isOpen)}
           aria-expanded={isOpen}
           aria-label="User profile menu"
-          className="flex items-center gap-3 rounded-xl p-1 text-left transition-colors hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+          className="flex items-center gap-3 rounded-xl p-1 text-left transition-colors hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
         >
           <Avatar name={userName} size="md" status="online" />
           <div className="hidden md:flex flex-col">
@@ -66,7 +66,7 @@ export const UserProfileMenu: React.FC = () => {
             <div className="px-3 py-2 border-b border-slate-100 mb-1">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-900">{userName}</span>
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 capitalize">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 capitalize">
                   <GraduationCap className="h-3 w-3" />
                   Student
                 </span>
@@ -94,7 +94,7 @@ export const UserProfileMenu: React.FC = () => {
                   setIsOpen(false);
                   setShowLogoutConfirm(true);
                 }}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors"
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
                 <span>Logout</span>
