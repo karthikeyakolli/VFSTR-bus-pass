@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
-import { AlertOctagon, ShieldAlert, CheckCircle, Search, UserX } from 'lucide-react';
+import { AlertOctagon } from 'lucide-react';
 
 export const ViolationManager: React.FC = () => {
   const toast = useToast();

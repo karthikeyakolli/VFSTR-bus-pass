@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/hooks/useToast';
-import { ShieldAlert, AlertTriangle, PhoneCall, BellRing, MapPin } from 'lucide-react';
+import { ShieldAlert, BellRing, MapPin } from 'lucide-react';
 
 export const EmergencyAlertSystem: React.FC = () => {
   const toast = useToast();
