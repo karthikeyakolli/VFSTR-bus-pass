@@ -23,6 +23,9 @@ const SuspenseFallback: React.FC = () => (
   </div>
 );
 
+const DriverDashboardPage = lazy(() => import('@/pages/driver/DriverDashboardPage').then(m => ({ default: m.DriverDashboardPage })));
+const FleetMaintenancePage = lazy(() => import('@/pages/admin/FleetMaintenancePage').then(m => ({ default: m.FleetMaintenancePage })));
+
 export const studentRoutes: RouteObject = {
   element: <ProtectedRoute allowedRoles={['student']} />,
   children: [
@@ -38,6 +41,8 @@ export const studentRoutes: RouteObject = {
         { path: '/student/payments', element: <Suspense fallback={<SuspenseFallback />}><PaymentHistoryPage /></Suspense> },
         { path: '/student/routes', element: <Suspense fallback={<SuspenseFallback />}><StudentRoutesPage /></Suspense> },
         { path: '/student/notifications', element: <Suspense fallback={<SuspenseFallback />}><NotificationsPage /></Suspense> },
+        { path: '/driver/dashboard', element: <Suspense fallback={<SuspenseFallback />}><DriverDashboardPage /></Suspense> },
+        { path: '/admin/fleet', element: <Suspense fallback={<SuspenseFallback />}><FleetMaintenancePage /></Suspense> },
         { path: '/help', element: <Suspense fallback={<SuspenseFallback />}><HelpPage /></Suspense> },
       ],
     },

@@ -10,6 +10,7 @@ import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
 import { PageLayout } from '@/layouts/components/PageLayout';
 import { RouteStopsDesigner } from '@/components/routes/RouteStopsDesigner';
+import { BusGpsTracker } from '@/components/routes/BusGpsTracker';
 import {
   Bus,
   MapPin,
@@ -244,6 +245,9 @@ export const StudentRoutesPage: React.FC = () => {
           </div>
         }
       />
+
+      {/* Live GPS Telemetry Simulator */}
+      <BusGpsTracker routeCode="Route #14" routeName="Guntur City Express" />
 
       {/* 1. Geolocation Alert Banner if Location Detected */}
       {userCoords && (
