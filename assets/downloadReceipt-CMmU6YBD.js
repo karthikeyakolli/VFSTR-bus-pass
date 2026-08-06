@@ -1,4 +1,4 @@
-import{q as s,E as d}from"./vendor-deps-8AOf5enc.js";const g=e=>{const c=`
+import{u as s,E as d}from"./vendor-deps-DZLKgcKn.js";const g=e=>{const c=`
 ================================================================================
 VIGNAN FOUNDATION FOR SCIENCE, TECHNOLOGY AND RESEARCH (Deemed to be University)
 Vadlamudi, Guntur, Andhra Pradesh - 522213
