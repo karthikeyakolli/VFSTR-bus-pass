@@ -14,7 +14,6 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Alert, AlertTitle } from '@/components/ui/Alert';
 import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
-import { BusSeatPicker } from '@/components/ui/BusSeatPicker';
 import {
   User,
   GraduationCap,
@@ -194,8 +193,9 @@ export const ApplyPassPage: React.FC = () => {
       setApplicationRef(generatedRef);
       setCompletedSteps([1, 2, 3, 4]);
       setCurrentStep(4);
+      studentProfile.isTransportUser = true;
       localStorage.removeItem('vfstr-buspass-draft');
-      toast.success('Application Submitted', `Application reference ${generatedRef} created successfully.`);
+      toast.success('Application & Payment Cleared', `Application reference ${generatedRef} submitted and digital pass unlocked.`);
     }, 1200);
   };
 
@@ -422,9 +422,6 @@ export const ApplyPassPage: React.FC = () => {
                   {...register('preferredShift')}
                 />
               </div>
-
-              {/* Interactive Bus Seat Selection Grid */}
-              <BusSeatPicker />
 
               {/* Photo Upload Placeholder */}
               <div className="p-4 border-2 border-dashed border-border rounded-xl bg-muted/20 text-center space-y-2">

@@ -39,6 +39,24 @@ export const DigitalPassPage: React.FC = () => {
   // Card Flip State
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
 
+  // Rotating TOTP Security Verification Token
+  const [totpToken, setTotpToken] = useState<string>('849201');
+  const [totpTimer, setTotpTimer] = useState<number>(30);
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setTotpTimer((prev) => {
+        if (prev <= 1) {
+          const newToken = Math.floor(100000 + Math.random() * 900000).toString();
+          setTotpToken(newToken);
+          return 30;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Custom User Photo State (default to sample photo)
   const [userPhoto, setUserPhoto] = useState<string>(
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
@@ -68,6 +86,10 @@ export const DigitalPassPage: React.FC = () => {
   };
 
   const handleVerifyHmac = async () => {
+    if (!studentProfile.isTransportUser) {
+      toast.error('Pass Not Issued', 'You have not applied for a bus pass yet. Please complete registration first.');
+      return;
+    }
     const payload = JSON.stringify({
       passNumber: passDetails.passNumber,
       studentName: studentProfile.name,
@@ -81,18 +103,30 @@ export const DigitalPassPage: React.FC = () => {
   };
 
   const handleDownloadPdf = async () => {
+    if (!studentProfile.isTransportUser) {
+      toast.error('Pass Not Issued', 'Bus pass download is locked until your application and fee payment are completed.');
+      return;
+    }
     toast.info('Generating PDF Pass...', 'Creating multi-page PDF with Front and Back pass faces.');
     await downloadCombinedBusPassPdf('vfstr-bus-pass-front', 'vfstr-bus-pass-back', studentProfile.regNo || '241FA04001');
     toast.success('Combined Pass PDF Downloaded', 'Official VFSTR bus pass PDF with both Front & Back sides generated successfully.');
   };
 
   const handleDownloadFrontImage = async () => {
+    if (!studentProfile.isTransportUser) {
+      toast.error('Pass Not Issued', 'Bus pass download is locked. Please apply and complete fee payment first.');
+      return;
+    }
     toast.info('Generating Image...', 'Capturing front side of VFSTR Bus Pass.');
     await downloadCardElementAsImage('vfstr-bus-pass-front', `VFSTR_BusPass_Front_${studentProfile.regNo}.png`);
     toast.success('Downloaded Front Side', 'Front side pass image saved successfully.');
   };
 
   const handleDownloadBackImage = async () => {
+    if (!studentProfile.isTransportUser) {
+      toast.error('Pass Not Issued', 'Bus pass download is locked. Please apply and complete fee payment first.');
+      return;
+    }
     toast.info('Generating Image...', 'Capturing back side of VFSTR Bus Pass.');
     await downloadCardElementAsImage('vfstr-bus-pass-back', `VFSTR_BusPass_Back_${studentProfile.regNo}.png`);
     toast.success('Downloaded Back Side', 'Back side pass image saved successfully.');
@@ -172,7 +206,7 @@ export const DigitalPassPage: React.FC = () => {
       <SectionHeader
         title="Official Digital Bus Pass"
         subtitle="Vignan Foundation for Science, Technology & Research Transport Pass"
-        badge={<StatusChip status={passDetails.status} />}
+        badge={<StatusChip status={studentProfile.isTransportUser ? passDetails.status : "pending"} label={studentProfile.isTransportUser ? "Active & Authorized" : "Not Issued / Unpaid"} />}
         actions={
           <div className="flex items-center gap-2 flex-wrap">
             <Button
@@ -180,6 +214,7 @@ export const DigitalPassPage: React.FC = () => {
               size="sm"
               leftIcon={<ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />}
               onClick={handleVerifyHmac}
+              disabled={!studentProfile.isTransportUser}
             >
               Verify Security HMAC
             </Button>
@@ -188,16 +223,18 @@ export const DigitalPassPage: React.FC = () => {
               size="sm"
               leftIcon={<Printer className="h-3.5 w-3.5" />}
               onClick={handlePrintPass}
+              disabled={!studentProfile.isTransportUser}
             >
               Print Pass
             </Button>
             <Button
-              variant="primary"
+              variant={studentProfile.isTransportUser ? "primary" : "secondary"}
               size="sm"
               leftIcon={<Download className="h-3.5 w-3.5" />}
               onClick={handleDownloadPdf}
+              disabled={!studentProfile.isTransportUser}
             >
-              Download PDF Pass
+              {studentProfile.isTransportUser ? "Download PDF Pass" : "Pass Locked (Fee Unpaid)"}
             </Button>
           </div>
         }
@@ -439,11 +476,32 @@ export const DigitalPassPage: React.FC = () => {
                       </p>
                     </div>
 
-                    {/* Silver Security Hologram Sticker */}
-                    <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg bg-gradient-to-br from-slate-200 via-slate-400 to-slate-300 border-2 border-slate-400 shadow-md shrink-0 flex items-center justify-center p-1 relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/50 to-transparent animate-pulse" />
-                      <div className="text-center font-black text-[9px] text-slate-800 uppercase tracking-tighter leading-tight z-10">
-                        ORIGINAL<br />VFSTR<br />HOLOGRAM
+                    {/* Live TOTP Rotating Security QR Badge */}
+                    <div className="flex flex-col items-center bg-white/90 p-2 rounded-xl border-2 border-slate-900 shadow-md shrink-0 space-y-1">
+                      <div className="h-14 w-14 rounded-lg bg-slate-950 p-1 flex items-center justify-center text-white relative">
+                        {/* Dynamic SVG QR pattern representation */}
+                        <div className="grid grid-cols-4 gap-0.5 w-full h-full p-0.5">
+                          <div className="bg-white rounded-xs" />
+                          <div className="bg-emerald-400 rounded-xs" />
+                          <div className="bg-white rounded-xs" />
+                          <div className="bg-white rounded-xs" />
+                          <div className="bg-white rounded-xs" />
+                          <div className="bg-transparent" />
+                          <div className="bg-emerald-400 rounded-xs" />
+                          <div className="bg-white rounded-xs" />
+                          <div className="bg-white rounded-xs" />
+                          <div className="bg-white rounded-xs" />
+                          <div className="bg-white rounded-xs" />
+                          <div className="bg-emerald-400 rounded-xs" />
+                          <div className="bg-white rounded-xs" />
+                          <div className="bg-emerald-400 rounded-xs" />
+                          <div className="bg-white rounded-xs" />
+                          <div className="bg-white rounded-xs" />
+                        </div>
+                      </div>
+                      <div className="text-center font-mono font-extrabold text-[10px] text-slate-900">
+                        TOTP: <span className="text-emerald-700 font-black">{totpToken}</span>
+                        <span className="block text-[8px] text-slate-600 font-sans">Refreshes in {totpTimer}s</span>
                       </div>
                     </div>
                   </div>

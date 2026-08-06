@@ -60,12 +60,12 @@ export const StudentDashboardPage: React.FC = () => {
 
   return (
     <PageLayout>
-      {/* 1. Welcome Banner */}
-      <div className="rounded-2xl border border-primary/20 bg-card p-6 sm:p-8 shadow-card">
+      {/* 1. Welcome Hero Card */}
+      <Card className="p-6 sm:p-8 bg-gradient-to-r from-card via-card to-primary/5 border border-border/80 shadow-md transition-all duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs font-semibold">
+              <Badge variant="secondary" className="text-xs font-bold px-2.5 py-0.5">
                 VFSTR Transport Portal
               </Badge>
               {studentProfile.isTransportUser ? (
@@ -74,11 +74,11 @@ export const StudentDashboardPage: React.FC = () => {
                 <Badge variant="outline" className="text-xs">Not Enrolled in Bus Transport</Badge>
               )}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground font-heading">
               Welcome back, {studentProfile.name}!
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Reg No: <span className="font-semibold text-foreground">{studentProfile.regNo}</span> • Department of {studentProfile.department}
+              Reg No: <span className="font-semibold text-foreground font-mono">{studentProfile.regNo}</span> • Department of {studentProfile.department}
             </p>
           </div>
 
@@ -90,7 +90,7 @@ export const StudentDashboardPage: React.FC = () => {
                   size="md"
                   leftIcon={<QrCode className="h-4 w-4" />}
                   onClick={() => setQrDialogOpen(true)}
-                  className="shadow-sm hover:shadow transition-all"
+                  className="shadow-md hover:shadow-lg transition-all"
                 >
                   View QR Pass
                 </Button>
@@ -106,7 +106,7 @@ export const StudentDashboardPage: React.FC = () => {
                   variant="primary"
                   size="md"
                   leftIcon={<Bus className="h-4 w-4" />}
-                  className="shadow-sm hover:shadow transition-all"
+                  className="shadow-md hover:shadow-lg transition-all"
                 >
                   Apply for Bus Pass
                 </Button>
@@ -114,7 +114,7 @@ export const StudentDashboardPage: React.FC = () => {
             )}
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Emergency SOS Safety Desk */}
       <EmergencySosWidget
@@ -294,6 +294,7 @@ export const StudentDashboardPage: React.FC = () => {
         </div>
       )}
 
+
       {/* 3. Quick Actions Panel */}
       <Card className="p-5">
         <SectionHeader
@@ -302,42 +303,44 @@ export const StudentDashboardPage: React.FC = () => {
           className="pb-3 mb-4"
         />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <Button
-            variant="outline"
-            className="flex-col h-20 gap-2 text-xs font-medium justify-center hover:border-primary/50 hover:shadow-sm transition-all"
-            onClick={() => setQrDialogOpen(true)}
-          >
-            <QrCode className="h-5 w-5 text-primary" />
-            <span>Digital QR Pass</span>
-          </Button>
+          {[
+            { icon: <QrCode className="h-5 w-5" />, label: 'Digital QR Pass', onClick: () => setQrDialogOpen(true) },
+            { icon: <RefreshCw className="h-5 w-5" />, label: 'Renew Pass', href: '/student/renew' },
+            { icon: <Download className="h-5 w-5" />, label: 'Fee Receipt', href: '/student/payments' },
+            { icon: <MapPin className="h-5 w-5" />, label: 'Route Timings', href: '/student/routes' },
+            { icon: <HelpCircle className="h-5 w-5" />, label: 'Report Issue', href: '/help' },
+          ].map((action, i) => {
+            const inner = (
+              <button
+                key={action.label}
+                onClick={action.onClick}
+                className={`
+                  w-full flex flex-col items-center justify-center gap-2.5 h-[88px] rounded-2xl
+                  border border-border bg-card text-foreground text-xs font-semibold
+                  hover:border-primary/40 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/8 hover:-translate-y-0.5
+                  active:translate-y-0 active:shadow-sm
+                  transition-all duration-200 ease-out
+                  animate-fade-up
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40
+                `}
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary border border-primary/10 group-hover:from-primary/25 transition-all duration-200">
+                  {action.icon}
+                </span>
+                <span className="text-center leading-tight">{action.label}</span>
+              </button>
+            );
 
-          <Link to="/student/renew" className="w-full">
-            <Button variant="outline" className="flex-col h-20 gap-2 text-xs font-medium justify-center w-full hover:border-primary/50 hover:shadow-sm transition-all">
-              <RefreshCw className="h-5 w-5 text-primary" />
-              <span>Renew Pass</span>
-            </Button>
-          </Link>
-
-          <Link to="/student/payments" className="w-full">
-            <Button variant="outline" className="flex-col h-20 gap-2 text-xs font-medium justify-center w-full hover:border-primary/50 hover:shadow-sm transition-all">
-              <Download className="h-5 w-5 text-primary" />
-              <span>Fee Receipt</span>
-            </Button>
-          </Link>
-
-          <Link to="/student/routes" className="w-full">
-            <Button variant="outline" className="flex-col h-20 gap-2 text-xs font-medium justify-center w-full hover:border-primary/50 hover:shadow-sm transition-all">
-              <MapPin className="h-5 w-5 text-primary" />
-              <span>Route Timings</span>
-            </Button>
-          </Link>
-
-          <Link to="/help" className="w-full">
-            <Button variant="outline" className="flex-col h-20 gap-2 text-xs font-medium justify-center w-full hover:border-primary/50 hover:shadow-sm transition-all">
-              <HelpCircle className="h-5 w-5 text-primary" />
-              <span>Report Issue</span>
-            </Button>
-          </Link>
+            if (action.href) {
+              return (
+                <Link key={action.label} to={action.href} className="w-full">
+                  {inner}
+                </Link>
+              );
+            }
+            return inner;
+          })}
         </div>
       </Card>
 

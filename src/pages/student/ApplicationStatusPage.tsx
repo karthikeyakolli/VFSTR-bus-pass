@@ -247,25 +247,24 @@ export const ApplicationStatusPage: React.FC = () => {
       />
 
       {/* Filter Tabs & Search Bar */}
-      <Card className="p-4 border-2 border-border bg-card">
+      <Card className="p-4">
         <div className="space-y-3">
           <Input
-            placeholder="Search by application reference code, route, or stop..."
+            placeholder="Search by reference code, route, or stop..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            leftIcon={<Search className="h-4 w-4 text-muted-foreground" />}
-            className="h-10 text-xs"
+            leftIcon={<Search className="h-4 w-4" />}
           />
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold scrollbar-none">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
             {(['All', 'Active / Pending', 'Approved', 'Rejected / Expired'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilterState(tab)}
-                className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl whitespace-nowrap text-xs font-semibold transition-all duration-150 ${
                   filterState === tab
-                    ? 'bg-primary text-primary-foreground font-bold shadow-sm'
-                    : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
+                    : 'bg-muted/60 text-muted-foreground hover:bg-muted/80 hover:text-foreground'
                 }`}
               >
                 {tab}
@@ -296,87 +295,84 @@ export const ApplicationStatusPage: React.FC = () => {
           />
         </Card>
       ) : (
-        <div className="space-y-4">
-          {filteredApps.map((app) => (
-            <Card key={app.id} className={`p-6 border-2 transition-all shadow-sm ${getStateCardBorder(app.state)}`}>
+        <div className="space-y-3">
+          {filteredApps.map((app, i) => (
+            <Card
+              key={app.id}
+              className={`p-5 border-l-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg animate-fade-up ${getStateCardBorder(app.state)}`}
+              style={{ animationDelay: `${i * 50}ms` }}
+            >
               <div className="space-y-4">
                 {/* Header Row */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-foreground text-base">{app.refNumber}</span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="font-mono font-black text-foreground text-sm tracking-tight">{app.refNumber}</span>
                       {getStateBadge(app.state)}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Submitted: <strong className="text-foreground">{app.date}</strong> • Academic Year {app.academicYear}
+                    <p className="text-[11px] text-muted-foreground">
+                      Submitted: <strong className="text-foreground">{app.date}</strong> · AY {app.academicYear}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs"
-                      leftIcon={<Eye className="h-3.5 w-3.5" />}
-                      onClick={() => setSelectedApp(app)}
-                    >
-                      View Timeline Details
-                    </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs self-start sm:self-center"
+                    leftIcon={<Eye className="h-3.5 w-3.5" />}
+                    onClick={() => setSelectedApp(app)}
+                  >
+                    Timeline
+                  </Button>
+                </div>
+
+                {/* Info Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-muted/30 border border-border/50 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                      <Bus className="h-3 w-3 text-primary" /> Route & Stop
+                    </span>
+                    <span className="font-bold text-primary block text-xs">{app.route}</span>
+                    <span className="text-muted-foreground block text-[11px]">{app.stop}</span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-muted/30 border border-border/50 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                      <FileCheck className="h-3 w-3 text-primary" /> Status Summary
+                    </span>
+                    <p className="text-foreground text-xs leading-relaxed">{app.description}</p>
                   </div>
                 </div>
 
-                {/* Body Information Matrix */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 bg-card rounded-lg border border-border/60 space-y-1">
-                    <span className="text-muted-foreground font-medium flex items-center gap-1.5">
-                      <Bus className="h-3.5 w-3.5 text-primary" /> Target Route & Stop
-                    </span>
-                    <span className="font-bold text-primary block">{app.route}</span>
-                    <span className="text-muted-foreground block text-[11px] font-medium">{app.stop}</span>
-                  </div>
-
-                  <div className="p-3 bg-card rounded-lg border border-border/60 space-y-1">
-                    <span className="text-muted-foreground font-medium flex items-center gap-1.5">
-                      <FileCheck className="h-3.5 w-3.5 text-primary" /> Status Summary
-                    </span>
-                    <p className="text-foreground font-medium leading-relaxed">{app.description}</p>
-                  </div>
-                </div>
-
-                {/* Timeline Roadmap Preview */}
-                <div className="p-3.5 rounded-xl bg-card border border-border/60 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
-                    Approval Timeline Roadmap:
-                  </span>
-                  <div className="flex items-center gap-2 overflow-x-auto text-[11px] pb-1 scrollbar-none">
+                {/* Timeline Pills */}
+                <div className="p-3 rounded-xl bg-muted/20 border border-border/40 space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Timeline</span>
+                  <div className="flex flex-wrap items-center gap-2">
                     {app.timeline.map((step, idx) => (
                       <React.Fragment key={idx}>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {step.status === 'completed' ? (
-                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                          ) : step.status === 'current' ? (
-                            <Clock className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
-                          ) : step.status === 'failed' ? (
-                            <XCircle className="h-3.5 w-3.5 text-rose-500" />
-                          ) : (
-                            <div className="h-2 w-2 rounded-full bg-muted-foreground/40" />
-                          )}
-                          <span className={step.status === 'completed' ? 'font-semibold text-foreground' : 'text-muted-foreground'}>
-                            {step.step}
-                          </span>
+                        <div className={`flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg ${
+                          step.status === 'completed' ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400' :
+                          step.status === 'current' ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400' :
+                          step.status === 'failed' ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400' :
+                          'bg-muted/60 text-muted-foreground'
+                        }`}>
+                          {step.status === 'completed' ? <CheckCircle2 className="h-3 w-3 shrink-0" /> :
+                           step.status === 'current' ? <Clock className="h-3 w-3 shrink-0 animate-pulse" /> :
+                           step.status === 'failed' ? <XCircle className="h-3 w-3 shrink-0" /> :
+                           <div className="h-1.5 w-1.5 rounded-full bg-current shrink-0" />}
+                          <span className="font-medium">{step.step}</span>
                         </div>
-                        {idx < app.timeline.length - 1 && <span className="text-muted-foreground/40 text-xs">→</span>}
+                        {idx < app.timeline.length - 1 && <span className="text-muted-foreground/30 text-xs hidden sm:block">→</span>}
                       </React.Fragment>
                     ))}
                   </div>
                 </div>
 
-                {/* Bottom Action Row */}
-                <div className="flex items-center justify-between pt-1">
+                {/* Bottom Row */}
+                <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">
-                    Annual Fee: <strong className="text-foreground">₹{app.feeAmount.toLocaleString()}</strong>
+                    Fee: <strong className="text-foreground">₹{app.feeAmount.toLocaleString()}</strong>
                   </span>
-
                   {app.actionUrl ? (
                     <Link to={app.actionUrl}>
                       <Button variant="primary" size="sm" rightIcon={<ArrowRight className="h-3.5 w-3.5" />}>
@@ -403,41 +399,49 @@ export const ApplicationStatusPage: React.FC = () => {
           title={`Application Lifecycle Details - ${selectedApp.refNumber}`}
           description={`Target Route: ${selectedApp.route} • Academic Year ${selectedApp.academicYear}`}
         >
-          <div className="space-y-4 py-2 text-xs">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border">
-              <span>Current Status:</span>
+          <div className="space-y-4 py-1">
+            {/* Status badge */}
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-muted/40 border border-border">
+              <span className="text-sm font-semibold text-foreground">Current Status</span>
               {getStateBadge(selectedApp.state)}
             </div>
 
-            <div className="space-y-3">
-              <h4 className="font-bold text-foreground text-xs uppercase tracking-wider">Step-by-Step Approval Timeline:</h4>
-              <div className="space-y-2 border-l-2 border-primary/30 pl-4">
+            {/* Step-by-step vertical timeline */}
+            <div className="space-y-2">
+              <h4 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Approval Timeline</h4>
+              <div className="space-y-0 relative">
                 {selectedApp.timeline.map((item, idx) => (
-                  <div key={idx} className="relative space-y-0.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-foreground">{item.step}</span>
-                      <span className="text-[10px] text-muted-foreground">{item.time}</span>
+                  <div key={idx} className="flex gap-3 relative">
+                    {/* Line connector */}
+                    {idx < selectedApp.timeline.length - 1 && (
+                      <div className="absolute left-3.5 top-7 bottom-0 w-0.5 bg-border" />
+                    )}
+                    {/* Status dot */}
+                    <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 z-10 mt-1 ${
+                      item.status === 'completed' ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40' :
+                      item.status === 'current'   ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/40' :
+                      item.status === 'failed'    ? 'border-rose-400 bg-rose-50 dark:bg-rose-950/40' :
+                      'border-border bg-muted/40'
+                    }`}>
+                      {item.status === 'completed' ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> :
+                       item.status === 'current'   ? <Clock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 animate-pulse" /> :
+                       item.status === 'failed'    ? <XCircle className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" /> :
+                       <div className="h-2 w-2 rounded-full bg-muted-foreground/40" />}
+                    </div>
+                    <div className="flex-1 pb-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="text-xs font-semibold text-foreground leading-snug">{item.step}</span>
+                        {item.time && <span className="text-[10px] text-muted-foreground shrink-0">{item.time}</span>}
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-muted-foreground leading-relaxed">
+            {/* Description */}
+            <div className="p-3.5 rounded-2xl bg-primary/5 border border-primary/15 text-xs text-muted-foreground leading-relaxed">
               {selectedApp.description}
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-              <Button variant="outline" size="sm" onClick={() => setSelectedApp(null)}>
-                Close
-              </Button>
-              {selectedApp.actionUrl && (
-                <Link to={selectedApp.actionUrl}>
-                  <Button variant="primary" size="sm">
-                    {selectedApp.actionLabel}
-                  </Button>
-                </Link>
-              )}
             </div>
           </div>
         </Dialog>

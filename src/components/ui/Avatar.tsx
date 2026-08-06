@@ -39,11 +39,19 @@ export const Avatar: React.FC<AvatarProps> = ({
     busy: 'bg-rose-500',
   };
 
+  const statusRings = {
+    online: 'shadow-emerald-400/50',
+    offline: '',
+    busy: 'shadow-rose-400/50',
+  };
+
   return (
     <div className="relative inline-block">
       <div
         className={cn(
-          'relative flex shrink-0 overflow-hidden rounded-full border border-border bg-muted items-center justify-center font-bold text-muted-foreground select-none',
+          'relative flex shrink-0 overflow-hidden rounded-full border-2 border-border/60 bg-gradient-to-br from-primary/15 to-primary/5 items-center justify-center font-bold text-primary select-none transition-all duration-200',
+          'hover:border-primary/40 hover:shadow-md',
+          status && statusRings[status],
           sizeStyles[size],
           className
         )}
@@ -56,9 +64,9 @@ export const Avatar: React.FC<AvatarProps> = ({
             className="h-full w-full object-cover"
           />
         ) : name ? (
-          <span>{getInitials(name)}</span>
+          <span className="font-black tracking-tight">{getInitials(name)}</span>
         ) : (
-          <User className="h-1/2 w-1/2" />
+          <User className="h-1/2 w-1/2 text-muted-foreground" />
         )}
       </div>
 
@@ -70,7 +78,8 @@ export const Avatar: React.FC<AvatarProps> = ({
             size === 'md' && 'h-2.5 w-2.5',
             size === 'lg' && 'h-3 w-3',
             size === 'xl' && 'h-4 w-4',
-            statusColors[status]
+            statusColors[status],
+            status === 'online' && 'animate-pulse'
           )}
         />
       )}

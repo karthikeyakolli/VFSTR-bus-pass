@@ -27,26 +27,26 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]';
+      'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] select-none cursor-pointer';
 
     const variants = {
       primary:
-        'bg-primary text-primary-foreground hover:bg-[hsl(var(--primary-hover))] shadow-sm active:bg-primary/90',
+        'bg-primary text-primary-foreground hover:bg-[hsl(var(--primary-hover))] shadow-md hover:shadow-lg hover:shadow-primary/20 active:shadow-sm',
       secondary:
-        'bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-sm',
+        'bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-md hover:shadow-lg hover:shadow-secondary/20 active:shadow-sm',
       outline:
-        'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-      ghost: 'hover:bg-accent hover:text-accent-foreground',
+        'border border-border bg-card text-foreground hover:bg-accent/60 hover:text-accent-foreground hover:border-primary/40 shadow-2xs',
+      ghost: 'text-foreground hover:bg-accent/60 hover:text-accent-foreground',
       destructive:
-        'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm',
-      link: 'text-primary underline-offset-4 hover:underline p-0 h-auto',
+        'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-lg hover:shadow-destructive/20 active:shadow-sm',
+      link: 'text-primary underline-offset-4 hover:underline p-0 h-auto font-normal',
     };
 
     const sizes = {
       sm: 'h-8 px-3 text-xs gap-1.5',
-      md: 'h-10 px-4 text-sm gap-2',
-      lg: 'h-12 px-6 text-base gap-2.5',
-      icon: 'h-10 w-10 p-0 justify-center',
+      md: 'h-9 px-4 text-xs sm:text-sm gap-2',
+      lg: 'h-11 px-5 text-sm sm:text-base gap-2.5',
+      icon: 'h-9 w-9 p-0 justify-center',
     };
 
     return (
@@ -57,7 +57,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || isLoading}
         {...props}
       >
-        {isLoading && <Loader2 className="w-4 h-4 animate-spin text-current" />}
+        {isLoading && <Loader2 className="w-4 h-4 animate-spin text-current shrink-0" />}
         {!isLoading && leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>}
         {children && <span>{children}</span>}
         {!isLoading && rightIcon && <span className="inline-flex shrink-0">{rightIcon}</span>}

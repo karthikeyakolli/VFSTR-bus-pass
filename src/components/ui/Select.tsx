@@ -23,18 +23,28 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={selectId} className="text-sm font-medium text-foreground">
+          <label
+            htmlFor={selectId}
+            className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+          >
             {label}
           </label>
         )}
-        <div className="relative flex items-center w-full">
+        <div className="relative flex items-center w-full group">
           <select
             id={selectId}
             ref={ref}
             disabled={disabled}
             className={cn(
-              'flex h-10 w-full appearance-none rounded-lg border border-input bg-background px-3 py-2 pr-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
-              error && 'border-destructive focus-visible:ring-destructive',
+              'flex h-10 w-full appearance-none rounded-xl border border-input bg-card px-3 py-2 pr-10 text-sm',
+              'ring-offset-background placeholder:text-muted-foreground/60',
+              'transition-all duration-200 ease-out',
+              'hover:border-primary/40',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-1 focus-visible:border-primary',
+              'disabled:cursor-not-allowed disabled:opacity-40 disabled:bg-muted/40',
+              error
+                ? 'border-l-4 border-l-destructive border-destructive/50 focus-visible:ring-destructive/30'
+                : '',
               className
             )}
             {...props}
@@ -50,10 +60,14 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-3 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <ChevronDown className="absolute right-3 w-4 h-4 text-muted-foreground pointer-events-none group-focus-within:text-primary transition-colors duration-200" />
         </div>
-        {error && <span className="text-xs font-medium text-destructive">{error}</span>}
-        {!error && helperText && <span className="text-xs text-muted-foreground">{helperText}</span>}
+        {error && (
+          <span className="text-[11px] font-semibold text-destructive">{error}</span>
+        )}
+        {!error && helperText && (
+          <span className="text-[11px] text-muted-foreground leading-relaxed">{helperText}</span>
+        )}
       </div>
     );
   }

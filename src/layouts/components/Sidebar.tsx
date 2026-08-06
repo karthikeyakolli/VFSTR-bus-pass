@@ -73,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Backdrop Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-opacity"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden transition-opacity animate-in fade-in-0 duration-200"
           onClick={onClose}
         />
       )}
@@ -82,23 +82,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <aside
         aria-label="Sidebar navigation"
         className={cn(
-          'fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-border bg-card text-card-foreground transition-all duration-300 ease-in-out lg:static lg:z-auto',
-          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-          collapsed ? 'w-20' : 'w-64'
+          'fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-border bg-card text-card-foreground',
+          'transition-all duration-300 ease-out lg:static lg:z-auto',
+          isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0',
+          collapsed ? 'w-[72px]' : 'w-64'
         )}
       >
         {/* Sidebar Brand Header */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-border">
-          <Link to="/" className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+        <div className="flex h-16 items-center justify-between px-4 border-b border-border shrink-0">
+          <Link to="/" className="flex items-center gap-3 overflow-hidden min-w-0">
+            {/* Gradient brand icon */}
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/20">
               <Bus className="h-5 w-5" />
             </div>
             {!collapsed && (
-              <div className="flex flex-col">
-                <span className="text-sm font-bold tracking-tight text-foreground truncate">
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-black tracking-tight text-foreground font-heading truncate">
                   {APP_CONFIG.shortName}
                 </span>
-                <span className="text-[11px] font-medium text-muted-foreground truncate">
+                <span className="text-[10px] font-medium text-muted-foreground truncate">
                   {portalTitle}
                 </span>
               </div>
@@ -110,7 +112,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="lg:hidden text-muted-foreground hover:text-foreground"
+            className="lg:hidden text-muted-foreground hover:text-foreground shrink-0"
             aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
@@ -122,7 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               variant="ghost"
               size="icon"
               onClick={onToggleCollapse}
-              className="hidden lg:flex text-muted-foreground hover:text-foreground h-8 w-8"
+              className="hidden lg:flex text-muted-foreground hover:text-foreground h-8 w-8 shrink-0"
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -131,7 +133,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigation Items List */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5 scrollbar-none">
           {items.map((item) => {
             const hasChildren = Boolean(item.children && item.children.length > 0);
             const isGroupOpen = Boolean(openGroups[item.label]);
@@ -141,17 +143,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             if (hasChildren) {
               return (
-                <div key={item.label} className="space-y-1">
+                <div key={item.label} className="space-y-0.5">
                   {/* Parent Accordion Group Trigger */}
                   <button
                     onClick={() => toggleGroup(item.label)}
                     aria-expanded={isGroupOpen}
                     className={cn(
-                      'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+                      'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium',
+                      'transition-all duration-150 group relative',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset',
                       isActive
-                        ? 'bg-accent text-accent-foreground font-semibold'
-                        : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
-                      collapsed && 'justify-center px-0'
+                        ? 'bg-primary/10 text-primary border-l-2 border-primary pl-[10px]'
+                        : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:translate-x-0.5',
+                      collapsed && 'justify-center px-0 border-l-0 pl-0 hover:translate-x-0'
                     )}
                     title={collapsed ? item.label : undefined}
                   >
@@ -160,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     {!collapsed && (
                       <ChevronDown
                         className={cn(
-                          'ml-auto h-4 w-4 shrink-0 transition-transform duration-200',
+                          'ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200',
                           isGroupOpen && 'rotate-180'
                         )}
                       />
@@ -169,7 +173,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                   {/* Expandable Child Sub-menu */}
                   {!collapsed && isGroupOpen && (
-                    <div className="pl-9 pr-2 space-y-1 py-1 border-l-2 border-primary/30 ml-4 animate-in slide-in-from-top-2 duration-200">
+                    <div className="pl-9 pr-2 space-y-0.5 py-1 border-l-2 border-primary/20 ml-4 animate-in slide-in-from-top-2 duration-200">
                       {item.children?.map((child) => {
                         const isSubActive = location.pathname === child.href;
                         return (
@@ -178,15 +182,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             to={child.href}
                             onClick={onClose}
                             className={cn(
-                              'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+                              'flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all duration-150',
                               isSubActive
-                                ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
-                                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                ? 'bg-primary text-primary-foreground font-semibold shadow-sm shadow-primary/20'
+                                : 'text-muted-foreground hover:text-foreground hover:bg-muted/80 hover:translate-x-0.5'
                             )}
                           >
                             <span className="truncate">{child.label}</span>
                             {child.badge && (
-                              <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-bold text-secondary-foreground">
+                              <span className="rounded-full bg-secondary/20 text-secondary border border-secondary/20 px-1.5 py-0.5 text-[9px] font-bold animate-in zoom-in-50">
                                 {child.badge}
                               </span>
                             )}
@@ -206,18 +210,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 to={item.href || '#'}
                 onClick={onClose}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all group relative',
+                  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium',
+                  'transition-all duration-150 group relative',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset',
                   isActive
-                    ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                  collapsed && 'justify-center px-0'
+                    ? 'bg-primary/10 text-primary font-semibold border-l-2 border-primary pl-[10px]'
+                    : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:translate-x-0.5',
+                  collapsed && 'justify-center px-0 border-l-0 pl-0 hover:translate-x-0'
                 )}
                 title={collapsed ? item.label : undefined}
               >
                 <span className="shrink-0">{item.icon}</span>
                 {!collapsed && <span className="truncate">{item.label}</span>}
                 {!collapsed && item.badge && (
-                  <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-secondary-foreground">
+                  <span className="ml-auto rounded-full bg-secondary/15 text-secondary border border-secondary/20 px-2 py-0.5 text-[10px] font-bold">
                     {item.badge}
                   </span>
                 )}
@@ -226,13 +232,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </nav>
 
-        {/* Footer / Sign Out Button */}
-        <div className="p-3 border-t border-border">
+        {/* Footer / Sign Out */}
+        <div className="p-3 border-t border-border shrink-0">
           <Button
             variant="ghost"
             onClick={onLogoutClick}
             className={cn(
-              'w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 justify-start',
+              'w-full text-muted-foreground hover:text-destructive hover:bg-destructive/8 justify-start rounded-xl',
+              'transition-all duration-150',
               collapsed && 'justify-center px-0'
             )}
           >

@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'text' | 'circular' | 'rectangular';
+  variant?: 'text' | 'circular' | 'rectangular' | 'card';
 }
 
 export const Skeleton: React.FC<SkeletonProps> = ({
@@ -11,18 +11,20 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   ...props
 }) => {
   const variantStyles = {
-    text: 'h-4 w-full rounded',
+    text: 'h-4 w-full rounded-lg',
     circular: 'rounded-full',
-    rectangular: 'rounded-lg',
+    rectangular: 'rounded-xl',
+    card: 'rounded-2xl',
   };
 
   return (
     <div
       className={cn(
-        'animate-pulse bg-muted/60 dark:bg-muted/40',
+        'skeleton-shimmer',
         variantStyles[variant],
         className
       )}
+      aria-hidden="true"
       {...props}
     />
   );

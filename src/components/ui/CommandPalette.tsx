@@ -158,19 +158,34 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   if (!isOpen) return null;
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} className="p-0 max-w-xl overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl">
-      <div className="flex items-center border-b border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50">
-        <Search className="h-5 w-5 text-slate-400 shrink-0 mr-3" />
+    <Dialog
+      isOpen={isOpen}
+      onClose={onClose}
+      className="max-w-xl p-0 overflow-hidden rounded-3xl border border-border/80 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/10"
+    >
+      <div className="flex items-center border-b border-border px-4 bg-muted/20">
+        <Search className="h-4 w-4 text-primary shrink-0 mr-3" />
         <input
           ref={inputRef}
           type="text"
+          placeholder="Type a command or search routes, passes, payments..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setSelectedIndex(0);
+          }}
           onKeyDown={handleKeyDown}
-          placeholder="Type a command or search routes, passes, profile... (Press Esc to exit)"
-          className="w-full bg-transparent text-sm text-foreground placeholder:text-slate-400 focus:outline-none"
+          className="h-14 w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none font-medium"
         />
-        <kbd className="hidden sm:inline-flex items-center gap-1 rounded bg-slate-200 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
+        {query && (
+          <button
+            onClick={() => setQuery('')}
+            className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-md bg-muted/50"
+          >
+            Clear
+          </button>
+        )}
+        <kbd className="hidden sm:inline-flex items-center gap-1 rounded bg-slate-200 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 ml-2">
           ESC
         </kbd>
       </div>

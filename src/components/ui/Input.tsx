@@ -17,14 +17,19 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={inputId} className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+          <label
+            htmlFor={inputId}
+            className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between"
+          >
             <span>{label}</span>
-            {isRequired && <span className="text-[10px] font-bold text-destructive">Required</span>}
+            {isRequired && (
+              <span className="text-[10px] font-bold text-destructive tracking-normal normal-case">Required</span>
+            )}
           </label>
         )}
-        <div className="relative flex items-center w-full">
+        <div className="relative flex items-center w-full group">
           {leftIcon && (
-            <div className="absolute left-3 flex items-center pointer-events-none text-muted-foreground">
+            <div className="absolute left-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors duration-200">
               {leftIcon}
             </div>
           )}
@@ -33,22 +38,36 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             disabled={disabled}
             className={cn(
-              'flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-xs ring-offset-background file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 transition-all',
+              'flex h-10 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm ring-offset-background',
+              'placeholder:text-muted-foreground/60',
+              'file:border-0 file:bg-transparent file:text-sm file:font-medium',
+              'transition-all duration-200 ease-out',
+              'hover:border-primary/40',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-1 focus-visible:border-primary',
+              'disabled:cursor-not-allowed disabled:opacity-40 disabled:bg-muted/40',
               leftIcon && 'pl-10',
               rightIcon && 'pr-10',
-              error && 'border-destructive focus-visible:ring-destructive',
+              error
+                ? 'border-l-4 border-l-destructive border-destructive/50 focus-visible:ring-destructive/30'
+                : '',
               className
             )}
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3 flex items-center pointer-events-none text-muted-foreground">
+            <div className="absolute right-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors duration-200">
               {rightIcon}
             </div>
           )}
         </div>
-        {error && <span className="text-xs font-medium text-destructive">{error}</span>}
-        {!error && helperText && <span className="text-xs text-muted-foreground">{helperText}</span>}
+        {error && (
+          <span className="text-[11px] font-semibold text-destructive flex items-center gap-1">
+            {error}
+          </span>
+        )}
+        {!error && helperText && (
+          <span className="text-[11px] text-muted-foreground leading-relaxed">{helperText}</span>
+        )}
       </div>
     );
   }

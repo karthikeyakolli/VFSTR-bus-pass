@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { useToast } from '@/hooks/useToast';
+import { MASTER_ROUTES_AY2026_27 } from '@/constants/masterRoutesSeed';
 import {
   MapPin,
   Clock,
@@ -104,6 +105,7 @@ export const RouteStopsDesigner: React.FC = () => {
   const activePreset = PRESET_ROUTES.find((r) => r.id === selectedPresetId) || PRESET_ROUTES[0];
   
   const [stops, setStops] = useState<RouteStopDesignItem[]>(activePreset.initialStops);
+  const totalMasterCount = MASTER_ROUTES_AY2026_27.length;
   const [newStopName, setNewStopName] = useState('');
   const [newLandmark, setNewLandmark] = useState('');
   const [newMorningTime, setNewMorningTime] = useState('07:20 AM');
@@ -215,14 +217,19 @@ export const RouteStopsDesigner: React.FC = () => {
   };
 
   return (
-    <Card className="p-6 border-2 border-primary/20 bg-card space-y-6 shadow-lg">
+    <Card className="p-6 bg-gradient-to-br from-card via-card to-primary/5 border-primary/20 shadow-xl space-y-6">
       <SectionHeader
         title="Interactive Bus Route & Stops Designer"
         subtitle="Visual stop sequence architect: add boarding points, reorder timetables, set GPS landmarks, and generate Google Maps paths"
         badge={
-          <Badge variant="secondary" className="font-extrabold flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-amber-500" /> Route Architect Studio
-          </Badge>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 font-semibold">
+              AY 2026-27 | {totalMasterCount} Canonical Routes
+            </Badge>
+            <Badge variant="secondary" className="font-extrabold flex items-center gap-1">
+              <Sparkles className="h-3 w-3 text-amber-500" /> Route Architect Studio
+            </Badge>
+          </div>
         }
         actions={
           <div className="flex items-center gap-2 flex-wrap">
@@ -241,37 +248,33 @@ export const RouteStopsDesigner: React.FC = () => {
               onClick={handleSaveRoute}
               className={isSaved ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
             >
-              {isSaved ? 'Saved to System' : 'Save Route Blueprint'}
+              {isSaved ? 'Route Configuration Saved' : 'Save Stops Layout'}
             </Button>
           </div>
         }
       />
 
-      {/* Preset Route Selection Tabs */}
+      {/* Preset Selector Tabs */}
       <div className="space-y-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
-          Select Route Blueprint to Customize
-        </span>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {PRESET_ROUTES.map((r) => (
+        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block">
+          Select Route Layout Preset:
+        </label>
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          {PRESET_ROUTES.map((preset) => (
             <button
-              key={r.id}
-              onClick={() => handleSelectPreset(r.id)}
-              className={`p-3.5 rounded-xl border text-left transition-all ${
-                selectedPresetId === r.id
-                  ? 'border-primary bg-primary/10 ring-2 ring-primary/30 font-bold text-foreground shadow-sm'
-                  : 'border-border/80 bg-muted/30 hover:bg-muted/60 text-muted-foreground'
+              key={preset.id}
+              onClick={() => handleSelectPreset(preset.id)}
+              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+                activePreset.id === preset.id
+                  ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20 scale-[1.02]'
+                  : 'bg-card/80 text-muted-foreground border-border hover:border-primary/40 hover:text-foreground hover:bg-muted/50'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-primary">{r.routeCode}</span>
-                <Badge variant="outline" className="text-[9px]">{r.busNo}</Badge>
+              <RouteIcon className="h-3.5 w-3.5 shrink-0" />
+              <div className="flex flex-col items-start leading-tight">
+                <span className="font-bold">{preset.routeCode}</span>
+                <span className="text-[10px] opacity-80">{preset.routeName}</span>
               </div>
-              <h4 className="text-sm font-extrabold text-foreground mt-1 truncate">{r.routeName}</h4>
-              <p className="text-[11px] text-muted-foreground mt-1 flex items-center justify-between">
-                <span>{r.initialStops.length} Stops</span>
-                <span>{r.distanceKm} km Total</span>
-              </p>
             </button>
           ))}
         </div>

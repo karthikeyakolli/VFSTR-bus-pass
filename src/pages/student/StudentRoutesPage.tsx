@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -10,7 +10,7 @@ import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
 import { PageLayout } from '@/layouts/components/PageLayout';
 import { RouteStopsDesigner } from '@/components/routes/RouteStopsDesigner';
-import { BusGpsTracker } from '@/components/routes/BusGpsTracker';
+import { MASTER_ROUTES_AY2026_27 } from '@/constants/masterRoutesSeed';
 import {
   Bus,
   MapPin,
@@ -47,26 +47,25 @@ export const StudentRoutesPage: React.FC = () => {
   const { studentProfile } = useUser();
   const toast = useToast();
   const [stopSearch, setStopSearch] = useState('');
-  const [selectedRouteId, setSelectedRouteId] = useState('R14');
+  const [selectedRouteId, setSelectedRouteId] = useState('R-01');
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [nearestStopId, setNearestStopId] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [liveMapMode, setLiveMapMode] = useState<'visual' | 'satellite'>('visual');
 
-  // Simulated live bus GPS coordinates moving along Guntur -> Vadlamudi route
-  const [busLocation] = useState({
-    lat: 16.2780,
-    lng: 80.4560,
-    speed: 42,
-    nextStop: 'Collectorate Junction',
-    etaMinutes: 4,
-  });
+  const currentMasterRoute = useMemo(() => {
+    return MASTER_ROUTES_AY2026_27.find((r) => r.routeCode === selectedRouteId) || MASTER_ROUTES_AY2026_27[0];
+  }, [selectedRouteId]);
 
-  const routesList = [
-    { id: 'R14', name: 'Route #14 - Guntur City Express', busNo: 'AP 07 TJ 4521', driver: 'K. Venkateswarlu', phone: '+91 94401 23456' },
-    { id: 'R08', name: 'Route #08 - Vijayawada Highway Line', busNo: 'AP 16 TZ 8812', driver: 'M. Sambaiah', phone: '+91 98481 12345' },
-    { id: 'R21', name: 'Route #21 - Tenali Town Shuttle', busNo: 'AP 07 TL 3099', driver: 'P. Srinivasa Rao', phone: '+91 99123 45678' },
-  ];
+  const mapBbox = useMemo(() => {
+    const lats = currentMasterRoute.stops.map((s: { latitude: number }) => s.latitude);
+    const lngs = currentMasterRoute.stops.map((s: { longitude: number }) => s.longitude);
+    const minLat = Math.min(...lats) - 0.03;
+    const maxLat = Math.max(...lats) + 0.03;
+    const minLng = Math.min(...lngs) - 0.03;
+    const maxLng = Math.max(...lngs) + 0.03;
+    return `${minLng}%2C${minLat}%2C${maxLng}%2C${maxLat}`;
+  }, [currentMasterRoute]);
 
   const assignedRouteDetails = {
     routeId: 'R14',
@@ -246,9 +245,6 @@ export const StudentRoutesPage: React.FC = () => {
         }
       />
 
-      {/* Live GPS Telemetry Simulator */}
-      <BusGpsTracker routeCode="Route #14" routeName="Guntur City Express" />
-
       {/* 1. Geolocation Alert Banner if Location Detected */}
       {userCoords && (
         <div className="p-4 rounded-2xl border-2 border-primary/30 bg-primary/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
@@ -294,10 +290,12 @@ export const StudentRoutesPage: React.FC = () => {
             <select
               value={selectedRouteId}
               onChange={(e) => setSelectedRouteId(e.target.value)}
-              className="h-9 px-3 text-xs font-semibold rounded-lg bg-muted border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="h-9 px-3 rounded-lg border border-border bg-card text-xs font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
-              {routesList.map((r) => (
-                <option key={r.id} value={r.id}>{r.name}</option>
+              {MASTER_ROUTES_AY2026_27.map((r) => (
+                <option key={r.routeCode} value={r.routeCode}>
+                  {r.routeCode} - {r.finalTerminal}
+                </option>
               ))}
             </select>
 
@@ -312,90 +310,78 @@ export const StudentRoutesPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Live GPS Telemetry Dashboard Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-muted/40 border border-border/80 text-xs">
+        {/* Dynamic Route Map Header Bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-muted/40 border border-border/80 text-xs">
           <div>
-            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Current Speed</span>
-            <span className="text-sm font-extrabold text-foreground font-mono">{busLocation.speed} km/h</span>
+            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Selected Route</span>
+            <span className="text-sm font-extrabold text-primary truncate block">{currentMasterRoute.routeCode} - {currentMasterRoute.finalTerminal}</span>
           </div>
           <div>
-            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Next Arrival Stop</span>
-            <span className="text-sm font-extrabold text-primary truncate block">{busLocation.nextStop}</span>
+            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Corridor & Distance</span>
+            <span className="text-sm font-extrabold text-foreground font-mono">{currentMasterRoute.corridorName} ({currentMasterRoute.totalDistanceKm} km)</span>
           </div>
           <div>
-            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Estimated Arrival</span>
-            <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">{busLocation.etaMinutes} mins ETA</span>
-          </div>
-          <div>
-            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Schedule Status</span>
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
-              <CheckCircle2 className="h-3.5 w-3.5" /> On Time Schedule
-            </span>
+            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Est. Travel Duration</span>
+            <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">{currentMasterRoute.estimatedTravelTimeMins} Mins</span>
           </div>
         </div>
 
-        {/* Real Interactive Map Canvas & OpenStreetMap Embed */}
-        <div className="relative rounded-2xl overflow-hidden border-2 border-primary/20 bg-slate-900 min-h-[320px] flex flex-col justify-between p-4 text-white">
-          {/* OpenStreetMap / Google Map Interactive Frame */}
+        {/* Real Interactive Dynamic Map Canvas */}
+        <div className="relative rounded-2xl overflow-hidden border-2 border-primary/20 bg-slate-900 min-h-[360px] flex flex-col justify-between p-4 text-white shadow-2xl">
+          {/* Dynamic Map Layer */}
           <iframe
-            title="VIGNAN Transport Live Map"
+            title={`VFSTR Transport Live Route Map - ${currentMasterRoute.routeCode}`}
             width="100%"
-            height="320"
-            className="absolute inset-0 w-full h-full opacity-70 grayscale-[20%] contrast-[110%]"
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=80.4000%2C16.2000%2C80.5800%2C16.3200&layer=${liveMapMode === 'satellite' ? 'hot' : 'mapnik'}&marker=16.2335%2C80.5486`}
+            height="360"
+            className="absolute inset-0 w-full h-full opacity-75 contrast-[110%]"
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapBbox}&layer=${liveMapMode === 'satellite' ? 'hot' : 'mapnik'}&marker=${currentMasterRoute.stops[0].latitude}%2C${currentMasterRoute.stops[0].longitude}`}
             style={{ border: 0 }}
           />
 
-          {/* Map Overlay Header */}
-          <div className="relative z-10 flex items-center justify-between bg-slate-950/80 backdrop-blur-md p-3 rounded-xl border border-white/10">
+          {/* Dynamic Map Overlay Header */}
+          <div className="relative z-10 flex items-center justify-between bg-slate-950/85 backdrop-blur-md p-3 rounded-xl border border-white/10 shadow-lg">
             <div className="flex items-center gap-2 text-xs">
-              <MapPin className="h-4 w-4 text-emerald-400 animate-bounce" />
-              <span>
-                Origin: <strong className="text-white">Guntur Bus Station</strong> → Destination: <strong className="text-white">Vadlamudi Campus (Bay 3)</strong>
+              <MapPin className="h-4 w-4 text-emerald-400 animate-bounce shrink-0" />
+              <span className="truncate">
+                Origin: <strong className="text-white">{currentMasterRoute.stops[0].stopName}</strong> → Destination: <strong className="text-white">Vadlamudi VFSTR Campus</strong>
               </span>
             </div>
-            <Badge className="bg-emerald-500 text-white font-bold text-[10px] px-2 py-0.5">
-              GPS Active
+            <Badge className="bg-emerald-500 text-white font-bold text-[10px] px-2.5 py-1 shrink-0 shadow-md">
+              {currentMasterRoute.stops.length} Canonical Stops
             </Badge>
           </div>
 
-          {/* Interactive Route Stop Node Flow on top of Map */}
+          {/* Interactive Dynamic Stop Node Sequence */}
           <div className="relative z-10 my-6 overflow-x-auto scrollbar-none py-2">
-            <div className="min-w-[650px] flex items-center justify-between relative px-6">
-              {/* Animated Connecting Polyline */}
+            <div className="min-w-[700px] flex items-center justify-between relative px-6">
+              {/* Animated Route Flow Polyline */}
               <div className="absolute top-1/2 left-8 right-8 h-1.5 bg-gradient-to-r from-blue-500 via-emerald-400 to-amber-400 -translate-y-1/2 rounded-full shadow-lg" />
 
-              {routeStops.map((stop) => {
-                const isNearest = stop.id === nearestStopId;
+              {currentMasterRoute.stops.map((stop: { sequence: number; stopName: string; district: string; isCampus?: boolean; isTerminal?: boolean }) => {
                 return (
-                  <div key={stop.id} className="relative z-10 flex flex-col items-center group cursor-pointer">
+                  <div key={stop.sequence} className="relative z-10 flex flex-col items-center group cursor-pointer">
                     <div
                       className={`h-10 w-10 rounded-full flex items-center justify-center font-bold text-xs shadow-xl transition-all duration-300 ${
-                        stop.isAssigned
-                          ? 'bg-blue-600 text-white ring-4 ring-blue-400/50 scale-125'
-                          : isNearest
-                          ? 'bg-amber-500 text-slate-950 ring-4 ring-amber-400/50 scale-125'
-                          : stop.seq === 6
-                          ? 'bg-emerald-500 text-white ring-4 ring-emerald-400/30'
+                        stop.isCampus
+                          ? 'bg-emerald-500 text-white ring-4 ring-emerald-400/40 scale-125'
+                          : stop.isTerminal
+                          ? 'bg-amber-500 text-slate-950 ring-4 ring-amber-400/50 scale-110'
                           : 'bg-slate-900 text-white border-2 border-blue-400'
                       }`}
                     >
-                      {stop.seq === 6 ? <Building className="h-4 w-4" /> : `#${stop.seq}`}
+                      {stop.isCampus ? <Building className="h-4 w-4 text-white" /> : `#${stop.sequence}`}
                     </div>
 
-                    <div className="mt-2 text-center space-y-0.5 max-w-[110px] bg-slate-950/85 backdrop-blur-md p-1.5 rounded-lg border border-white/10">
-                      <span className={`text-[11px] block font-bold truncate ${stop.isAssigned ? 'text-blue-400' : 'text-slate-100'}`}>
-                        {stop.name}
+                    <div className="mt-2 text-center space-y-0.5 max-w-[120px] bg-slate-950/85 backdrop-blur-md p-2 rounded-xl border border-white/10 shadow-lg">
+                      <span className="text-[11px] block font-bold text-white truncate">
+                        {stop.stopName}
                       </span>
-                      <span className="text-[9px] text-slate-300 font-mono block">{stop.morningTime}</span>
-                      {stop.isAssigned && (
-                        <span className="text-[8px] bg-blue-500 text-white px-1 rounded font-bold uppercase block mt-0.5">Assigned Stop</span>
+                      <span className="text-[9px] text-slate-300 font-mono block">{stop.district} District</span>
+                      {stop.isTerminal && (
+                        <span className="text-[8px] bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-extrabold uppercase block mt-0.5">Final Terminal</span>
                       )}
-                      {isNearest && !stop.isAssigned && (
-                        <span className="text-[8px] bg-amber-500 text-slate-950 px-1 rounded font-bold uppercase block mt-0.5">Closest to You</span>
-                      )}
-                      {stop.distanceFromUser && (
-                        <span className="text-[9px] text-emerald-400 font-semibold block">{stop.distanceFromUser}</span>
+                      {stop.isCampus && (
+                        <span className="text-[8px] bg-emerald-500 text-white px-1.5 py-0.5 rounded font-extrabold uppercase block mt-0.5">Vadlamudi Campus</span>
                       )}
                     </div>
                   </div>
@@ -404,19 +390,19 @@ export const StudentRoutesPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Map Overlay Footer */}
-          <div className="relative z-10 flex items-center justify-between bg-slate-950/80 backdrop-blur-md p-2.5 rounded-xl border border-white/10 text-xs">
-            <span className="text-slate-300 flex items-center gap-1.5 text-[11px]">
-              <Info className="h-3.5 w-3.5 text-blue-400" />
-              Live location coordinates updated every 5 seconds via VFSTR Transport Telemetry
+          {/* Dynamic Map Overlay Footer */}
+          <div className="relative z-10 flex items-center justify-between bg-slate-950/85 backdrop-blur-md p-2.5 rounded-xl border border-white/10 text-xs">
+            <span className="text-slate-300 flex items-center gap-1.5 text-[11px] truncate">
+              <Info className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+              <span>Primary Corridor: <strong className="text-white">{currentMasterRoute.primaryRoads.join(', ')}</strong></span>
             </span>
             <Button
               variant="outline"
               size="sm"
-              className="h-7 text-[11px] bg-white/10 hover:bg-white/20 border-white/20 text-white"
-              onClick={() => window.open('https://maps.google.com/?q=16.2335,80.5486', '_blank')}
+              className="h-7 text-[11px] bg-white/10 hover:bg-white/20 border-white/20 text-white shrink-0"
+              onClick={() => window.open(`https://maps.google.com/?q=${currentMasterRoute.stops[0].latitude},${currentMasterRoute.stops[0].longitude}`, '_blank')}
             >
-              Open in Google Maps ↗
+              Open Google Maps ↗
             </Button>
           </div>
         </div>
@@ -504,19 +490,9 @@ export const StudentRoutesPage: React.FC = () => {
               <span className="text-lg font-extrabold text-foreground">{assignedRouteDetails.assignedBusNo}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center justify-between">
-              <span>Bus Capacity:</span>
-              <strong className="text-foreground">48 / 55 Allocated</strong>
+              <span>Fleet Access:</span>
+              <strong className="text-emerald-600 dark:text-emerald-400 font-bold">Open Seating Available</strong>
             </p>
-          </div>
-
-          <div className="space-y-1 pt-1">
-            <div className="flex justify-between text-[11px] font-semibold">
-              <span className="text-emerald-600 dark:text-emerald-400">87% Seat Allocation</span>
-              <span className="text-muted-foreground">7 Seats Available</span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-emerald-500 to-amber-500 rounded-full" style={{ width: '87%' }} />
-            </div>
           </div>
 
           <div className="p-2.5 rounded-lg bg-muted/40 border border-border/60 text-xs text-muted-foreground space-y-1">
@@ -641,6 +617,8 @@ export const StudentRoutesPage: React.FC = () => {
           })}
         </div>
       </Card>
+
+
 
       {/* 6. Route Notices & Advisory Card */}
       <Card className="p-6 border-2 border-amber-500/20 bg-amber-50/10 space-y-4">

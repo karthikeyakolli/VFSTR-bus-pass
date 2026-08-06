@@ -43,6 +43,13 @@
     --ring: 199 89% 48%;
 
     --radius: 0.85rem;
+
+    /* Shadow Scale */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.04);
   }
 
   .dark {
@@ -75,6 +82,12 @@
     --border: 217 33% 20%;
     --input: 217 33% 20%;
     --ring: 199 89% 48%;
+
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.25);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.2);
   }
 }
 
@@ -101,68 +114,141 @@
   }
 }
 
-/* 3D Flip Card CSS Utilities */
-.perspective-1000 {
-  perspective: 1000px;
+/* =========================================
+   KEYFRAME ANIMATIONS
+   ========================================= */
+
+/* Page enter — used on all page layouts */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.transform-style-3d {
-  transform-style: preserve-3d;
+/* Fade up — for cards, list items staggered */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.backface-hidden {
+/* Scale in — for dialogs, modals, dropdowns */
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Shimmer — for skeleton loaders */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Pulse ring — for live/active status indicators */
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.6; }
+  70%  { transform: scale(2); opacity: 0; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* Slide down — for dropdown menus */
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Countdown bar — for toast timer */
+@keyframes countdown {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+/* =========================================
+   ANIMATION UTILITY CLASSES
+   ========================================= */
+.animate-page       { animation: page-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-up    { animation: fade-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-scale-in   { animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-slide-down { animation: slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-pulse-ring { animation: pulse-ring 1.8s ease-out infinite; }
+.animate-countdown  { animation: countdown linear forwards; }
+
+/* Stagger delay utilities */
+.delay-75  { animation-delay: 75ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* =========================================
+   SHIMMER SKELETON LOADER
+   ========================================= */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: hsl(var(--muted) / 0.6);
+}
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--card) / 0.6) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* =========================================
+   3D FLIP CARD UTILITIES (Digital Pass)
+   ========================================= */
+.perspective-1000    { perspective: 1000px; }
+.transform-style-3d  { transform-style: preserve-3d; }
+.backface-hidden     {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+.rotate-y-180        { transform: rotateY(180deg); }
 
-.rotate-y-180 {
-  transform: rotateY(180deg);
-}
+/* =========================================
+   COMPONENT UTILITIES
+   ========================================= */
 
-/* Page-enter animation */
-@keyframes page-enter {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-page {
-  animation: page-enter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* Modern Glassmorphic & Elevated Panel Utilities */
+/* Official panel — for info cards */
 .official-panel {
-  @apply bg-card border border-border/80 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl;
+  @apply bg-card border border-border/80 rounded-2xl shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all duration-200;
 }
 
+/* Official modal — for overlays */
 .official-modal {
-  @apply bg-card border border-border shadow-2xl rounded-2xl;
+  @apply bg-card border border-border shadow-[var(--shadow-xl)] rounded-3xl;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Interactive card lift — hover effect for clickable cards */
+.card-interactive {
+  @apply transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg)] hover:border-primary/30 cursor-pointer;
 }
-::-webkit-scrollbar-track {
-  background: transparent;
+
+/* Gradient separator line */
+.separator-gradient {
+  height: 1px;
+  background: linear-gradient(90deg, hsl(var(--border)), transparent);
 }
+
+/* =========================================
+   SCROLLBAR STYLING (Light + Dark)
+   ========================================= */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 rounded-full;
+  background: hsl(var(--border));
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-400;
+  background: hsl(var(--muted-foreground) / 0.4);
 }
 
-.scrollbar-none {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
+.scrollbar-none                     { scrollbar-width: none; -ms-overflow-style: none; }
+.scrollbar-none::-webkit-scrollbar  { display: none; }

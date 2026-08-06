@@ -28,24 +28,28 @@ export const EmergencySosWidget: React.FC<EmergencySosWidgetProps> = ({
   };
 
   return (
-    <div className="rounded-2xl border-2 border-rose-500/40 bg-rose-50/40 dark:bg-rose-950/20 p-5 space-y-3">
+    <div className="rounded-2xl border-2 border-rose-400/40 bg-gradient-to-r from-rose-50/60 to-rose-50/20 dark:from-rose-950/25 dark:to-rose-950/10 p-5 space-y-3 transition-all duration-200">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-bold text-sm">
-          <ShieldAlert className="h-5 w-5 animate-pulse" />
+        <div className="flex items-center gap-2.5 text-rose-700 dark:text-rose-400 font-bold text-sm">
+          {/* Pulse ring around icon */}
+          <span className="relative flex h-5 w-5 shrink-0">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-40 animate-ping" />
+            <ShieldAlert className="relative h-5 w-5 text-rose-600 dark:text-rose-400" />
+          </span>
           <span>VFSTR Campus Transport SOS Safety Desk</span>
         </div>
-        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-rose-200 text-rose-900 dark:bg-rose-900 dark:text-rose-200">
+        <span className="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-200 dark:border-rose-800/60 tracking-wide">
           24/7 Helpline
         </span>
       </div>
 
       {sosSent ? (
-        <div className="p-3 rounded-xl bg-rose-100 dark:bg-rose-900/60 border border-rose-300 dark:border-rose-700 text-xs text-rose-900 dark:text-rose-100 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-rose-600 shrink-0" />
+        <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-xs flex items-center justify-between gap-3 animate-fade-up">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <div>
-              <strong className="block font-bold">Emergency Alert Active</strong>
-              <span>Transport Officer Control Room dispatched to {routeName}.</span>
+              <strong className="block font-bold text-emerald-800 dark:text-emerald-300">Emergency Alert Active</strong>
+              <span className="text-emerald-700 dark:text-emerald-400">Transport Officer dispatched to {routeName}.</span>
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={() => setSosSent(false)} className="shrink-0 text-xs">
@@ -69,6 +73,7 @@ export const EmergencySosWidget: React.FC<EmergencySosWidgetProps> = ({
               isLoading={isSending}
               onClick={handleTriggerSos}
               leftIcon={<AlertTriangle className="h-3.5 w-3.5" />}
+              className="hover:scale-105 active:scale-100 transition-transform duration-150"
             >
               SEND EMERGENCY SOS
             </Button>

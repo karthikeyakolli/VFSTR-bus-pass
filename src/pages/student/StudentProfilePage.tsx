@@ -109,43 +109,54 @@ export const StudentProfilePage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto animate-page">
-      {/* 1. Header & Completion Progress Banner */}
-      <Card className="p-6 border-2 border-primary/10 bg-card">
+      {/* 1. Profile Hero Banner */}
+      <Card className="p-6 bg-gradient-to-r from-primary/5 via-card to-secondary/5 border-primary/15">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            {/* Student Photo Placeholder */}
-            <div className="relative group">
-              <Avatar name={studentProfile.name} size="xl" className="h-20 w-20 border-2 border-primary/20 text-xl" />
+            {/* Student Photo */}
+            <div className="relative group shrink-0">
+              <Avatar
+                name={studentProfile.name}
+                size="xl"
+                className="h-20 w-20 border-2 border-primary/25 text-xl ring-4 ring-primary/10"
+              />
               <button
                 onClick={handlePhotoUpload}
                 aria-label="Change profile photo"
-                className="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary text-primary-foreground shadow-md hover:scale-110 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary text-primary-foreground shadow-md hover:scale-110 active:scale-100 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
                 title="Change Photo"
               >
                 <Camera className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-extrabold text-foreground">{studentProfile.name}</h1>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-black text-foreground font-heading">{studentProfile.name}</h1>
                 <Badge variant="outline">{studentProfile.regNo}</Badge>
                 <StatusChip status="active" />
               </div>
-              <p className="text-xs text-muted-foreground">
-                {studentProfile.department} • {studentProfile.academicYear}
+              <p className="text-sm text-muted-foreground">
+                {studentProfile.department} · {studentProfile.academicYear}
+              </p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5 text-primary" />
+                {studentProfile.email}
               </p>
             </div>
           </div>
 
-          {/* Profile Completion Indicator */}
-          <div className="flex flex-col sm:items-end gap-2 shrink-0 border-t sm:border-t-0 pt-4 sm:pt-0 border-border">
+          {/* Profile Completion */}
+          <div className="flex flex-col sm:items-end gap-2 shrink-0 border-t md:border-t-0 pt-4 md:pt-0 border-border">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground">Profile Completion:</span>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{completionPercentage}%</span>
+              <span className="text-xs font-semibold text-muted-foreground">Profile Completion</span>
+              <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">{completionPercentage}%</span>
             </div>
-            <div className="w-48 bg-muted rounded-full h-2 overflow-hidden">
-              <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${completionPercentage}%` }} />
+            <div className="w-48 bg-muted rounded-full h-1.5 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-full rounded-full transition-all duration-700 ease-out"
+                style={{ width: `${completionPercentage}%` }}
+              />
             </div>
             <span className="text-[11px] text-muted-foreground flex items-center gap-1">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> Fully Verified Transport Registration
@@ -168,40 +179,40 @@ export const StudentProfilePage: React.FC = () => {
                 className="pb-3 mb-4"
               />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="space-y-1 p-3 bg-muted/40 rounded-lg">
-                  <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
-                    <GraduationCap className="h-3.5 w-3.5 text-primary" /> Full Name
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5 p-3.5 bg-muted/30 rounded-xl border border-border/50">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <GraduationCap className="h-3 w-3 text-primary" /> Full Name
                   </span>
                   {isEditing ? (
-                    <Input error={errors.name?.message} {...register('name')} className="h-8 text-xs bg-background" />
+                    <Input error={errors.name?.message} {...register('name')} className="h-8 text-xs" />
                   ) : (
                     <span className="font-bold text-foreground block text-sm">{studentProfile.name}</span>
                   )}
                 </div>
 
-                <div className="space-y-1 p-3 bg-muted/40 rounded-lg">
-                  <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
-                    <User className="h-3.5 w-3.5 text-primary" /> Registration Roll Number
+                <div className="space-y-1.5 p-3.5 bg-muted/30 rounded-xl border border-border/50">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <User className="h-3 w-3 text-primary" /> Roll Number
                   </span>
-                  <span className="font-bold text-foreground block text-sm font-mono">{studentProfile.regNo}</span>
+                  <span className="font-black text-foreground block text-sm font-mono tracking-tight">{studentProfile.regNo}</span>
                 </div>
 
-                <div className="space-y-1 p-3 bg-muted/40 rounded-lg">
-                  <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
-                    <Building className="h-3.5 w-3.5 text-primary" /> Department
+                <div className="space-y-1.5 p-3.5 bg-muted/30 rounded-xl border border-border/50">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <Building className="h-3 w-3 text-primary" /> Department
                   </span>
-                  <span className="font-semibold text-foreground block">{studentProfile.department}</span>
+                  <span className="font-semibold text-foreground block text-xs">{studentProfile.department}</span>
                 </div>
 
-                <div className="space-y-1 p-3 bg-muted/40 rounded-lg">
-                  <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
-                    <Calendar className="h-3.5 w-3.5 text-primary" /> Year & Section
+                <div className="space-y-1.5 p-3.5 bg-muted/30 rounded-xl border border-border/50">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <Calendar className="h-3 w-3 text-primary" /> Year & Section
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-foreground">{studentProfile.academicYear}</span>
+                    <span className="font-semibold text-foreground text-xs">{studentProfile.academicYear}</span>
                     {isEditing ? (
-                      <Input error={errors.section?.message} {...register('section')} className="h-7 w-24 text-xs bg-background" />
+                      <Input error={errors.section?.message} {...register('section')} className="h-7 w-24 text-xs" />
                     ) : (
                       <Badge variant="outline">{extraProfileFields.section}</Badge>
                     )}
