@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 240" width="100%" height="100%">
+  <!-- Left Shield Emblem -->
+  <g transform="translate(15, 5)">
+    <!-- Outer Shield Outline & Lavender Accent Fill -->
+    <path d="M 75 10 C 135 10, 148 30, 148 90 C 148 175, 75 228, 75 232 C 75 228, 2 175, 2 90 C 2 30, 15 10, 75 10 Z" fill="#ffffff" stroke="#8c92f8" stroke-width="8" stroke-linejoin="round"/>
+    
+    <!-- Shield Inner Fill Areas / Periwinkle background segments -->
+    <path d="M 75 16 C 128 16, 140 34, 140 90 C 140 168, 75 218, 75 222 C 75 218, 10 168, 10 90 C 10 34, 22 16, 75 16 Z" fill="#b4c6ff" opacity="0.35"/>
+
+    <!-- Wheel Outer Blue Ring -->
+    <circle cx="75" cy="105" r="54" fill="#a5b4fc" stroke="#007bff" stroke-width="11"/>
+
+    <!-- 5 Spokes lines (1 vertical straight down, 4 radial) -->
+    <line x1="75" y1="105" x2="75" y2="159" stroke="#007bff" stroke-width="11" stroke-linecap="butt"/>
+    <line x1="75" y1="105" x2="107" y2="61" stroke="#007bff" stroke-width="11" stroke-linecap="butt"/>
+    <line x1="75" y1="105" x2="43" y2="61" stroke="#007bff" stroke-width="11" stroke-linecap="butt"/>
+    <line x1="75" y1="105" x2="126" y2="122" stroke="#007bff" stroke-width="11" stroke-linecap="butt"/>
+    <line x1="75" y1="105" x2="24" y2="122" stroke="#007bff" stroke-width="11" stroke-linecap="butt"/>
+
+    <!-- Center Hub Circle -->
+    <circle cx="75" cy="105" r="20" fill="#007bff"/>
+
+    <!-- 5-Point White Star inside Center Hub -->
+    <polygon points="75,93 77.8,101 86,101 79.5,105.8 82,114 75,109 68,114 70.5,105.8 64,101 72.2,101" fill="#ffffff"/>
+  </g>
+
+  <!-- Red VIGNAN'S Header Text -->
+  <g font-family="'Arial Black', Impact, 'Helvetica Neue', sans-serif" font-weight="900">
+    <text x="175" y="112" font-size="112" fill="#fe0000" letter-spacing="-1">VIGNAN'S</text>
+  </g>
+
+  <!-- Black Sub-text: FOUNDATION FOR SCIENCE, TECHNOLOGY & RESEARCH -->
+  <text x="178" y="148" font-family="'Arial Black', 'Segoe UI Bold', sans-serif" font-weight="900" font-size="22" fill="#000000" letter-spacing="0.1">
+    FOUNDATION FOR SCIENCE, TECHNOLOGY &amp; RESEARCH
+  </text>
+
+  <!-- Blue Solid Rectangular Box with White Text -->
+  <rect x="10" y="172" width="880" height="52" fill="#0080ff"/>
+  <text x="450" y="207" font-family="'Segoe UI', Arial, sans-serif" font-weight="bold" font-size="23.5" fill="#ffffff" text-anchor="middle">
+    (Deemed to be University) - Estd. u/s 3 of UGC Act 1956
+  </text>
+</svg>

@@ -15,8 +15,9 @@ export const UserProfileMenu: React.FC = () => {
   const { user, logout } = useAuth();
   const { studentProfile } = useUser();
 
-  const userName = user?.name || studentProfile.name;
-  const userSubtext = `${studentProfile.regNo} • CSE`;
+  const userName = studentProfile.name || user?.name || 'Student';
+  const regNo = studentProfile.regNo || (user?.email ? user.email.split('@')[0].toUpperCase() : '251FA04001');
+  const userSubtext = `${regNo} • CSE`;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

@@ -1,0 +1,22 @@
+{
+  "name": "VFSTR Bus Pass",
+  "short_name": "VFSTR Pass",
+  "description": "Vignan Foundation for Science, Technology & Research Transport Portal",
+  "start_url": "/VFSTR-bus-pass/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0284c7",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/192/bus.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/color/512/bus.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

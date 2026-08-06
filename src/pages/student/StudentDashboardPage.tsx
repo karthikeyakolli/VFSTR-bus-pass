@@ -9,6 +9,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { ActivityTimeline } from '@/components/ui';
 import { useUser } from '@/hooks/useUser';
 import { PageLayout } from '@/layouts/components/PageLayout';
+import { EmergencySosWidget } from '@/components/ui/EmergencySosWidget';
 import {
   Bus,
   Ticket,
@@ -114,6 +115,13 @@ export const StudentDashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Emergency SOS Safety Desk */}
+      <EmergencySosWidget
+        busRegNo={mockPassDetails.busRegNo}
+        routeName={`${mockPassDetails.routeNumber} - ${mockPassDetails.routeName}`}
+        driverPhone={mockPassDetails.driverPhone}
+      />
 
       {/* 2. Top Information Grid */}
       {studentProfile.isTransportUser ? (

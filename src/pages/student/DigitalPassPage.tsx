@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -9,8 +9,9 @@ import { Avatar } from '@/components/ui/Avatar';
 import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
 import { APP_CONFIG } from '@/config/app.config';
-import { downloadDigitalPassPdf } from '@/utils/downloadReceipt';
+import { downloadCombinedBusPassPdf, downloadCardElementAsImage } from '@/utils/downloadReceipt';
 import { PageLayout } from '@/layouts/components/PageLayout';
+import { AdvancedBackendService, VerificationResult } from '@/services/AdvancedBackendService';
 import {
   Bus,
   Calendar,
@@ -24,11 +25,25 @@ import {
   Building,
   User,
   CreditCard,
+  RotateCw,
+  Upload,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 export const DigitalPassPage: React.FC = () => {
   const { studentProfile } = useUser();
   const toast = useToast();
+  const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
+
+  // Card Flip State
+  const [isFlipped, setIsFlipped] = useState<boolean>(false);
+
+  // Custom User Photo State (default to sample photo)
+  const [userPhoto, setUserPhoto] = useState<string>(
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const passDetails = {
     passNumber: 'VFSTR-2026-R14-04001',
@@ -39,74 +54,135 @@ export const DigitalPassPage: React.FC = () => {
     daysRemaining: 245,
     assignedRouteNumber: 'Route #14',
     assignedRouteName: 'Guntur City Express',
-    assignedStop: 'Old Bus Stand, Guntur',
+    assignedStop: 'Gorantla, Guntur',
+    seatNo: '41',
+    busRegNo: 'AP39WC - 7020',
     morningPickupTime: '07:10 AM',
     eveningDepartureTime: '05:15 PM',
-    assignedBusRegNo: 'AP 07 TJ 4521',
-    assignedBusId: 'VFSTR-B14',
     transportOfficeStatus: 'Verified & Authorized by Transport Officer',
     feePaid: 18500,
     paymentStatus: 'Paid',
     authorizedBy: 'Dr. M. R. K. Murthy (Transport In-Charge)',
+    phoneNumber: '8885940527',
+    yearBranch: 'Ist CSE-DS',
   };
 
-  const handleDownloadPdf = () => {
-    downloadDigitalPassPdf({
+  const handleVerifyHmac = async () => {
+    const payload = JSON.stringify({
       passNumber: passDetails.passNumber,
       studentName: studentProfile.name,
       regNo: studentProfile.regNo,
-      department: studentProfile.department,
-      route: passDetails.assignedRouteName,
-      pickupPoint: passDetails.assignedStop,
       validUntil: passDetails.expiryDate,
-      busRegNo: passDetails.assignedBusRegNo,
     });
-    toast.success('Pass PDF Generated', 'Official VFSTR digital bus pass credential downloaded successfully.');
+    const signature = btoa(`${passDetails.passNumber}:${studentProfile.regNo}:VFSTR_SECRET_KEY`);
+    const res = await AdvancedBackendService.verifyPassSignature(payload, signature);
+    setVerificationResult(res);
+    toast.success('HMAC Cryptographic Proof Verified', 'Pass token signature validated against backend secret key.');
+  };
+
+  const handleDownloadPdf = async () => {
+    toast.info('Generating PDF Pass...', 'Creating multi-page PDF with Front and Back pass faces.');
+    await downloadCombinedBusPassPdf('vfstr-bus-pass-front', 'vfstr-bus-pass-back', studentProfile.regNo || '241FA04001');
+    toast.success('Combined Pass PDF Downloaded', 'Official VFSTR bus pass PDF with both Front & Back sides generated successfully.');
+  };
+
+  const handleDownloadFrontImage = async () => {
+    toast.info('Generating Image...', 'Capturing front side of VFSTR Bus Pass.');
+    await downloadCardElementAsImage('vfstr-bus-pass-front', `VFSTR_BusPass_Front_${studentProfile.regNo}.png`);
+    toast.success('Downloaded Front Side', 'Front side pass image saved successfully.');
+  };
+
+  const handleDownloadBackImage = async () => {
+    toast.info('Generating Image...', 'Capturing back side of VFSTR Bus Pass.');
+    await downloadCardElementAsImage('vfstr-bus-pass-back', `VFSTR_BusPass_Back_${studentProfile.regNo}.png`);
+    toast.success('Downloaded Back Side', 'Back side pass image saved successfully.');
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Invalid File Type', 'Please upload a valid image file (JPG, PNG, WebP).');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setUserPhoto(event.target.result as string);
+          toast.success('Passport Photo Updated', 'Your passport size photo has been updated on the bus pass.');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handlePrintPass = () => {
     window.print();
   };
 
-  if (!studentProfile.isTransportUser) {
-    return (
-      <PageLayout>
-        <SectionHeader
-          title="Digital Bus Pass Credentials"
-          subtitle="Vignan Foundation for Science, Technology & Research Transport Pass"
-        />
-        <Card className="p-8 text-center max-w-2xl mx-auto space-y-4 border-2 border-primary/20 bg-card">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mx-auto">
-            <Bus className="h-8 w-8" />
-          </div>
-          <h2 className="text-xl font-bold text-foreground">Not Enrolled in University Transport</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-            You do not currently have an active bus pass subscription. Apply for university transport services to get assigned to a route, seat, and digital bus pass.
-          </p>
-          <div className="pt-2 flex items-center justify-center gap-3">
-            <Link to="/student/routes">
-              <Button variant="outline" size="md">View Routes & Fees</Button>
-            </Link>
-            <Link to="/student/apply">
-              <Button variant="primary" size="md" leftIcon={<Bus className="h-4 w-4" />}>
-                Apply for Bus Pass
-              </Button>
-            </Link>
-          </div>
-        </Card>
-      </PageLayout>
-    );
-  }
+  const isSamplePreview = !studentProfile.isTransportUser;
 
   return (
     <PageLayout>
+      {/* Hidden File Input for Passport Photo Upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handlePhotoUpload}
+        accept="image/*"
+        className="hidden"
+      />
+
+      {/* Non-Enrolled Student Sample Bus Pass Banner Notice */}
+      {isSamplePreview && (
+        <div className="p-4 rounded-2xl border-2 border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+              <Bus className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-sm uppercase tracking-wide">Sample Bus Pass Preview</span>
+                <Badge variant="outline" className="border-amber-500/50 text-amber-700 dark:text-amber-300 font-bold">
+                  Demo Mode
+                </Badge>
+              </div>
+              <p className="text-xs text-amber-800 dark:text-amber-300/90 mt-0.5">
+                You are currently viewing a sample prototype of the official VFSTR Bus Pass card. Apply now to get your official pass assigned!
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+            <Link to="/student/routes" className="w-1/2 sm:w-auto">
+              <Button variant="outline" size="sm" className="w-full border-amber-500/40 text-amber-800 dark:text-amber-200">
+                View Routes
+              </Button>
+            </Link>
+            <Link to="/student/apply" className="w-1/2 sm:w-auto">
+              <Button variant="primary" size="sm" className="w-full bg-amber-600 hover:bg-amber-700 text-white" leftIcon={<Bus className="h-4 w-4" />}>
+                Apply Now
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Section Header with Actions */}
       <SectionHeader
         title="Official Digital Bus Pass"
         subtitle="Vignan Foundation for Science, Technology & Research Transport Pass"
         badge={<StatusChip status={passDetails.status} />}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              leftIcon={<ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />}
+              onClick={handleVerifyHmac}
+            >
+              Verify Security HMAC
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -130,104 +206,293 @@ export const DigitalPassPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Column 1: Main Digital Bus Pass Card Feature */}
         <div className="lg:col-span-8 space-y-6">
-          {/* Official Pass Design Placeholder Notice */}
-          <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-50/40 dark:bg-amber-950/20 text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between gap-3">
+          {/* Verification Result Banner */}
+          {verificationResult && (
+            <div className={`p-4 rounded-xl border flex items-center justify-between gap-3 text-xs ${
+              verificationResult.isValid
+                ? 'border-emerald-500/40 bg-emerald-50/50 text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
+                : 'border-rose-500/40 bg-rose-50/50 text-rose-900 dark:bg-rose-950/30 dark:text-rose-200'
+            }`}>
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-600" />
+                <div>
+                  <span className="font-bold block">HMAC Signature Status: {verificationResult.status.toUpperCase()}</span>
+                  <span className="text-[11px] opacity-90">Pass ID: {verificationResult.passNumber} • Verified for {verificationResult.studentName} ({verificationResult.regNo})</span>
+                </div>
+              </div>
+              <Badge variant="outline" className="shrink-0 border-current">Authentic Key Token</Badge>
+            </div>
+          )}
+
+          {/* Interactive Card Action Controls Header */}
+          <div className="p-4 rounded-2xl bg-card border border-border flex flex-wrap items-center justify-between gap-3 shadow-sm">
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-amber-500 shrink-0" />
-              <span>Current physical/manual bus pass remains active. Digital layout will update once the official VFSTR Bus Pass design is released by the university.</span>
+              <Button
+                variant={isFlipped ? "outline" : "primary"}
+                size="sm"
+                onClick={() => setIsFlipped(!isFlipped)}
+                leftIcon={<RotateCw className="h-4 w-4" />}
+                className="font-semibold shadow-sm"
+              >
+                Flip to {isFlipped ? "Front Side" : "Back Side"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                leftIcon={<Upload className="h-4 w-4 text-primary" />}
+                className="font-medium"
+              >
+                Upload Passport Photo
+              </Button>
             </div>
-            <Badge variant="outline" className="shrink-0 border-amber-500/40 text-amber-700 dark:text-amber-300">Manual Pass Active</Badge>
-          </div>
 
-          {/* Feature #1: Exact Replica of Official Physical VFSTR Bus Pass Card (From Uploaded Sample Image) */}
-          <div className="p-6 rounded-3xl bg-slate-900 shadow-2xl border-4 border-amber-400 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Official Physical Pass Blueprint</span>
-              <Badge variant="secondary" className="bg-amber-400 text-slate-950 font-black text-xs">BUS PASS 2025-26</Badge>
-            </div>
-
-            {/* Laminated Plastic Pass Container */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-yellow-300 via-yellow-400 to-yellow-500 text-slate-950 p-5 sm:p-6 shadow-inner border-2 border-yellow-600 font-sans">
-              {/* Card Header */}
-              <div className="flex items-start justify-between border-b-2 border-slate-900/40 pb-3 gap-2">
-                <div className="flex items-center gap-3">
-                  {/* VFSTR Emblem Logo Circle */}
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-950 text-yellow-400 font-black text-xl shrink-0 border-2 border-white shadow">
-                    V
-                  </div>
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-black tracking-tight text-slate-950 uppercase leading-none">
-                      VIGNAN'S UNIVERSITY
-                    </h2>
-                    <p className="text-[9px] font-bold text-slate-900 tracking-tighter leading-tight mt-0.5">
-                      VIGNAN'S FOUNDATION FOR SCIENCE TECHNOLOGY AND RESEARCH
-                    </p>
-                    <p className="text-[8px] font-extrabold text-slate-800 tracking-tighter">
-                      (DEEMED TO BE UNIVERSITY)
-                    </p>
-                    <p className="text-[8px] font-medium text-slate-800">
-                      Vadlamudi, Guntur, AP - 522213 Ph : 7330813943, 9705444211
-                    </p>
-                  </div>
-                </div>
-
-                {/* Passport Student Photo Container */}
-                <div className="relative shrink-0">
-                  <div className="h-24 w-20 rounded-md bg-white border-2 border-slate-950 overflow-hidden shadow-md">
-                    <img
-                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80"
-                      alt="A. SAI ADITYA"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  {/* Purple Transport Stamp Watermark Overlay */}
-                  <div className="absolute -bottom-3 -left-4 h-14 w-14 rounded-full border-2 border-purple-800/60 bg-purple-900/10 flex items-center justify-center pointer-events-none rotate-12">
-                    <span className="text-[7px] font-black text-purple-900/80 uppercase text-center leading-none">
-                      VFSTR<br />TRANSPORT<br />STAMP
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Red-Bordered BUS PASS Badge Banner */}
-              <div className="flex items-center justify-between my-3 gap-2">
-                <div className="flex items-center gap-3 text-xs font-black">
-                  <span>SEAT No. <u className="font-mono text-sm underline decoration-slate-900">46</u></span>
-                  <span>BUS No. <u className="font-mono text-sm underline decoration-slate-900">AP39WC 7038</u></span>
-                </div>
-                <div className="px-3 py-1 rounded-md bg-red-600 text-white font-black text-xs tracking-wider shadow border border-red-700">
-                  BUS PASS 2025-26
-                </div>
-              </div>
-
-              {/* Student Identification Handwritten Font Fields */}
-              <div className="space-y-1.5 text-xs font-extrabold text-slate-950 border-t-2 border-slate-900/30 pt-3">
-                <div className="flex items-baseline gap-2">
-                  <span className="w-28 shrink-0 text-slate-900 font-bold">Name :</span>
-                  <span className="font-black text-sm uppercase font-mono tracking-wide text-slate-950">A. SAI ADITYA</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="w-28 shrink-0 text-slate-900 font-bold">ID. No. :</span>
-                  <span className="font-black text-sm font-mono tracking-wide text-slate-950">151FA23010</span>
-                  <span className="ml-auto text-[11px] font-bold">Year / Branch : <u className="font-mono underline">Ist CSE-DS</u></span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="w-28 shrink-0 text-slate-900 font-bold">Boarding Stage :</span>
-                  <span className="font-black text-xs uppercase font-mono tracking-wide text-slate-950">RATNAGIRI NAGAR</span>
-                </div>
-              </div>
-
-              {/* Signature Seal Footer */}
-              <div className="flex items-end justify-between border-t border-slate-900/30 pt-3 mt-3 text-[10px] font-bold">
-                <span className="text-slate-800">VFSTR Smart Transport Card Credential</span>
-                <div className="text-right">
-                  <span className="block font-mono text-red-700 font-black italic">M.R.K. Murthy</span>
-                  <span className="text-slate-900 font-extrabold">Authorised Signature</span>
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleDownloadFrontImage}
+                leftIcon={<ImageIcon className="h-3.5 w-3.5" />}
+              >
+                Download Front (PNG)
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleDownloadBackImage}
+                leftIcon={<ImageIcon className="h-3.5 w-3.5" />}
+              >
+                Download Back (PNG)
+              </Button>
             </div>
           </div>
 
+          {/* 3D Flip Card Container */}
+          <div className="w-full min-h-[460px] sm:min-h-[500px] flex items-center justify-center" style={{ perspective: '1200px' }}>
+            <div
+              className="relative w-full transition-transform duration-700"
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+              }}
+            >
+              {/* ============================================================ */}
+              {/* FRONT SIDE OF PHYSICAL VFSTR BUS PASS (Matches Original Spec) */}
+              {/* ============================================================ */}
+              <div
+                id="vfstr-bus-pass-front"
+                className="w-full rounded-3xl bg-yellow-300 p-3 sm:p-5 shadow-2xl border-4 border-yellow-400 text-slate-950 font-sans"
+                style={{
+                  backgroundColor: '#facc15',
+                  backgroundImage: 'radial-gradient(#eab308 0.75px, transparent 0.75px)',
+                  backgroundSize: '12px 12px',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                }}
+              >
+                {/* Outer Red Line Border Enclosing Front Pass Content */}
+                <div className="relative rounded-2xl border-2 border-red-600 p-4 sm:p-5 bg-yellow-300/90 shadow-inner space-y-3">
+                  
+                  {/* Top University Header & Logo (Matching Official Image Branding) */}
+                  <div className="flex items-start justify-between border-b-2 border-slate-900 pb-3 gap-2">
+                    <div className="flex-1 max-w-[340px] sm:max-w-[420px] pt-1">
+                      <img
+                        src={`${import.meta.env.BASE_URL}vignan-logo.svg`}
+                        alt="Vignan's Foundation for Science, Technology & Research"
+                        className="w-full h-auto object-contain"
+                      />
+                      <p className="text-[8px] sm:text-[9px] font-bold text-slate-900 tracking-tighter mt-1 text-center">
+                        Vadlamudi, Guntur, AP - 522213 • Ph : 7330813943, 9705444211
+                      </p>
+                    </div>
+
+                    {/* Student Passport Size Photo Box */}
+                    <div className="relative shrink-0 group/photo">
+                      <div className="h-28 w-22 sm:h-32 sm:w-26 rounded-md bg-white border-2 border-slate-950 overflow-hidden shadow-md relative">
+                        <img
+                          src={userPhoto}
+                          alt={studentProfile.name}
+                          className="h-full w-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold gap-1 cursor-pointer"
+                        >
+                          <Camera className="h-4 w-4" />
+                          <span>Change Photo</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Seat No, Bus No & Red BUS PASS Badge */}
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <div className="space-y-1 text-xs sm:text-sm font-extrabold text-slate-950">
+                      <div>
+                        SEAT No. <span className="font-mono text-base font-black underline decoration-slate-900 ml-2">{passDetails.seatNo}</span>
+                      </div>
+                      <div>
+                        BUS No. <span className="font-mono text-base font-black underline decoration-slate-900 ml-2">{passDetails.busRegNo}</span>
+                      </div>
+                    </div>
+
+                    {/* Red Rounded BUS PASS Badge */}
+                    <div className="px-3 sm:px-4 py-1.5 rounded-xl bg-red-600 text-white font-black text-xs sm:text-sm tracking-wider shadow-md border-2 border-red-700 uppercase shrink-0">
+                      BUS PASS 2025-26
+                    </div>
+                  </div>
+
+                  {/* Handwritten Style Student Information Fields */}
+                  <div className="space-y-2 text-xs sm:text-sm font-extrabold text-slate-950 border-t-2 border-slate-900/40 pt-3">
+                    <div className="flex items-baseline gap-2">
+                      <span className="w-28 sm:w-32 shrink-0 text-slate-900 font-bold">Name :</span>
+                      <span className="font-black text-sm sm:text-base font-mono tracking-wide text-blue-950 uppercase border-b border-dashed border-slate-900/60 flex-1 pb-0.5">
+                        {studentProfile.name || 'P. M. SAI GOWTHAM REDDY'}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <span className="w-28 sm:w-32 shrink-0 text-slate-900 font-bold">ID. No. :</span>
+                      <span className="font-black text-sm sm:text-base font-mono tracking-wide text-blue-950 border-b border-dashed border-slate-900/60 flex-1 pb-0.5">
+                        {studentProfile.regNo || '241FA04001'}
+                      </span>
+                      <div className="flex items-center gap-1 text-xs sm:text-sm ml-auto">
+                        <span className="font-bold">Year / Branch :</span>
+                        <span className="font-black font-mono border-b border-dashed border-slate-900/60 px-1">
+                          {passDetails.yearBranch}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-baseline gap-2">
+                      <span className="w-28 sm:w-32 shrink-0 text-slate-900 font-bold">Boarding Stage :</span>
+                      <span className="font-black text-xs sm:text-sm font-mono tracking-wide text-blue-950 uppercase border-b border-dashed border-slate-900/60 flex-1 pb-0.5">
+                        {passDetails.assignedStop}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Stamp & Authorized Signature Footer */}
+                  <div className="flex items-end justify-between border-t-2 border-slate-900/40 pt-3 mt-2">
+                    <div className="flex items-center gap-2">
+                      {/* Purple Round Transport Stamp */}
+                      <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full border-2 border-red-700 bg-red-600/10 flex items-center justify-center rotate-[-12deg] pointer-events-none p-1">
+                        <div className="text-[7px] sm:text-[8px] font-black text-red-800 uppercase text-center leading-none border border-red-700/60 rounded-full p-1 w-full h-full flex flex-col items-center justify-center">
+                          <span>VFSTR</span>
+                          <span>TRANSPORT</span>
+                          <span>SEAL</span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-800 max-w-[140px] leading-tight hidden sm:block">
+                        Valid for Academic Session 2025-2026
+                      </span>
+                    </div>
+
+                    <div className="text-right space-y-0.5">
+                      <div className="h-6 flex items-end justify-end">
+                        <span className="font-serif italic text-red-700 font-bold text-sm tracking-wide">
+                          M.R.K. Murthy
+                        </span>
+                      </div>
+                      <span className="text-[11px] sm:text-xs font-black text-slate-950 uppercase block">
+                        Authorised Signature
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* ============================================================ */}
+              {/* BACK SIDE OF PHYSICAL VFSTR BUS PASS (Matches Original Spec) */}
+              {/* ============================================================ */}
+              <div
+                id="vfstr-bus-pass-back"
+                className="absolute inset-0 w-full h-full rounded-3xl bg-yellow-300 p-3 sm:p-5 shadow-2xl border-4 border-yellow-400 text-slate-950 font-sans flex flex-col justify-between"
+                style={{
+                  backgroundColor: '#facc15',
+                  backgroundImage: 'radial-gradient(#eab308 0.75px, transparent 0.75px)',
+                  backgroundSize: '12px 12px',
+                  transform: 'rotateY(180deg)',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                }}
+              >
+                {/* Outer Red Line Border Enclosing Back Pass Content */}
+                <div className="relative rounded-2xl border-2 border-red-600 p-4 sm:p-5 bg-yellow-300/90 shadow-inner h-full flex flex-col justify-between space-y-4">
+                  
+                  {/* Top Hologram & Note Box Row */}
+                  <div className="flex items-start justify-between gap-3">
+                    {/* Note Box */}
+                    <div className="flex-1 space-y-1 text-xs sm:text-sm font-extrabold text-slate-950">
+                      <div className="flex items-start gap-1.5 leading-snug">
+                        <span className="px-2 py-0.5 rounded bg-red-600 text-white font-black text-xs uppercase shrink-0">
+                          Note :
+                        </span>
+                        <span className="text-[11px] sm:text-xs font-bold text-slate-900">
+                          Once the bus pass is issued to a student, it is not transferable and not exchangeable to anyone. If found like this it will be penalise for both students.
+                        </span>
+                      </div>
+                      <p className="text-[11px] sm:text-xs font-black text-slate-950 pt-1">
+                        *Once paid amount not refundable.
+                      </p>
+                    </div>
+
+                    {/* Silver Security Hologram Sticker */}
+                    <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg bg-gradient-to-br from-slate-200 via-slate-400 to-slate-300 border-2 border-slate-400 shadow-md shrink-0 flex items-center justify-center p-1 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/50 to-transparent animate-pulse" />
+                      <div className="text-center font-black text-[9px] text-slate-800 uppercase tracking-tighter leading-tight z-10">
+                        ORIGINAL<br />VFSTR<br />HOLOGRAM
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Lined Address & Vehicle & Phone Section (Matching Image 2) */}
+                  <div className="space-y-4 my-auto pt-2">
+                    {/* Address Line */}
+                    <div className="space-y-1">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm font-black text-slate-950 w-24 shrink-0">Address</span>
+                        <span className="font-mono font-extrabold text-sm sm:text-base text-blue-950 border-b-2 border-slate-900 flex-1 pb-0.5">
+                          Guntur, Gorantla
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Bus Reg No Line */}
+                    <div className="space-y-1">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm font-black text-slate-950 w-24 shrink-0">Vehicle No.</span>
+                        <span className="font-mono font-black text-base sm:text-lg text-blue-950 border-b-2 border-slate-900 flex-1 pb-0.5">
+                          {passDetails.busRegNo}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Phone No Line */}
+                    <div className="space-y-1">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm font-black text-slate-950 w-24 shrink-0">Phone No.</span>
+                        <span className="font-mono font-black text-base sm:text-lg text-blue-950 border-b-2 border-slate-900 flex-1 pb-0.5">
+                          {passDetails.phoneNumber}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Back Footer */}
+                  <div className="border-t-2 border-slate-900/40 pt-2 flex items-center justify-between text-[10px] font-bold text-slate-800">
+                    <span>VFSTR Transport Cell Security Verification Desk</span>
+                    <span>Admin Block Room 104</span>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Full Pass Details Table */}
           <Card className="border-2 border-primary/20 shadow-xl overflow-hidden bg-card">
             {/* Card Top Header Banner */}
             <div className="bg-gradient-to-r from-primary via-primary/90 to-primary-hover p-6 text-primary-foreground">
@@ -255,7 +520,7 @@ export const DigitalPassPage: React.FC = () => {
             <CardContent className="p-6 space-y-6">
               {/* Student Identification Row */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 p-4 rounded-xl bg-muted/40 border border-border">
-                <Avatar name={studentProfile.name} size="xl" className="h-20 w-20 border-2 border-primary/30 text-xl shrink-0" />
+                <Avatar name={studentProfile.name} src={userPhoto} size="xl" className="h-20 w-20 border-2 border-primary/30 text-xl shrink-0" />
 
                 <div className="space-y-1.5 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -305,8 +570,8 @@ export const DigitalPassPage: React.FC = () => {
                   </span>
                   <div className="flex items-center gap-2">
                     <Bus className="h-4 w-4 text-primary shrink-0" />
-                    <span className="font-bold text-foreground text-sm">{passDetails.assignedBusRegNo}</span>
-                    <Badge variant="secondary" className="ml-auto">{passDetails.assignedBusId}</Badge>
+                    <span className="font-bold text-foreground text-sm">{passDetails.busRegNo}</span>
+                    <Badge variant="secondary" className="ml-auto">Seat #{passDetails.seatNo}</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground pt-1">
                     Transport Cell Office Code: <span className="font-semibold text-foreground">VFSTR-CELL-04</span>

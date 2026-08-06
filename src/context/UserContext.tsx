@@ -1,19 +1,22 @@
-import React, { createContext, useState, useCallback } from 'react';
+import React, { createContext, useState, useCallback, useEffect } from 'react';
 import { StudentProfile } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { StudentService } from '@/services/StudentService';
 
 export interface UserContextType {
   studentProfile: StudentProfile;
   updateStudentProfile: (partial: Partial<StudentProfile>) => void;
+  refreshStudentProfile: () => Promise<void>;
 }
 
 export const UserContext = createContext<UserContextType | undefined>(undefined);
 
 const initialStudentProfile: StudentProfile = {
-  id: 'usr_01',
-  name: 'K. S. V. Prasad',
-  email: '211fa04001@vignan.ac.in',
+  id: 'usr_251fa04001',
+  name: 'AARADHYULA LALITHA LAKSHMI SAMHITHA',
+  email: '251fa04001@gmail.com',
   role: 'student',
-  regNo: '211FA04001',
+  regNo: '251FA04001',
   department: 'Computer Science & Engineering',
   program: 'B.Tech',
   academicYear: '2026 - 2027',
@@ -29,15 +32,38 @@ const initialStudentProfile: StudentProfile = {
 };
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [studentProfile, setStudentProfile] = useState<StudentProfile>(initialStudentProfile);
 
+  const loadProfile = useCallback(async () => {
+    if (user) {
+      try {
+        const profile = await StudentService.getProfile(user.id || user.email);
+        setStudentProfile(profile);
+      } catch (err) {
+        console.error('Failed to load profile for user', err);
+      }
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
   const updateStudentProfile = useCallback((partial: Partial<StudentProfile>) => {
-    setStudentProfile((prev) => ({ ...prev, ...partial }));
+    setStudentProfile((prev) => {
+      const updated = { ...prev, ...partial };
+      if (updated.regNo) {
+        localStorage.setItem(`vfstr_profile_${updated.regNo}`, JSON.stringify(updated));
+      }
+      return updated;
+    });
   }, []);
 
   return (
-    <UserContext.Provider value={{ studentProfile, updateStudentProfile }}>
+    <UserContext.Provider value={{ studentProfile, updateStudentProfile, refreshStudentProfile: loadProfile }}>
       {children}
     </UserContext.Provider>
   );
 };
+

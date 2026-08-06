@@ -14,6 +14,7 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Alert, AlertTitle } from '@/components/ui/Alert';
 import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
+import { BusSeatPicker } from '@/components/ui/BusSeatPicker';
 import {
   User,
   GraduationCap,
@@ -421,6 +422,9 @@ export const ApplyPassPage: React.FC = () => {
                   {...register('preferredShift')}
                 />
               </div>
+
+              {/* Interactive Bus Seat Selection Grid */}
+              <BusSeatPicker />
 
               {/* Photo Upload Placeholder */}
               <div className="p-4 border-2 border-dashed border-border rounded-xl bg-muted/20 text-center space-y-2">
