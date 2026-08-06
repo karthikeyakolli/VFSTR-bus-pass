@@ -1,1 +1,0 @@
-import{j as n}from"./vendor-core-DBNfHPgQ.js";import{c as u}from"./index-on3ByGu-.js";const s=({className:r,variant:t="rectangular",...e})=>{const a={text:"h-4 w-full rounded",circular:"rounded-full",rectangular:"rounded-lg"};return n.jsx("div",{className:u("animate-pulse bg-muted/60 dark:bg-muted/40",a[t],r),...e})};export{s as S};
