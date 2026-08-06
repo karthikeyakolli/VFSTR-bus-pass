@@ -21,6 +21,7 @@ import {
   Sparkles,
   Building,
 } from 'lucide-react';
+import { InteractiveRouteMap } from './InteractiveRouteMap';
 
 export interface RouteStopDesignItem {
   id: string;
@@ -276,7 +277,16 @@ export const RouteStopsDesigner: React.FC = () => {
         </div>
       </div>
 
-      {/* Route Timeline Flow Visualization Bar */}
+      {/* Interactive Map Visualizer */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
+            Live Route Geographic Map View
+          </span>
+          <Badge variant="outline" className="text-[10px] text-primary">OpenStreetMap GIS</Badge>
+        </div>
+        <InteractiveRouteMap stops={stops} />
+      </div>
       <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 text-white space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-blue-300 flex items-center gap-1.5">
