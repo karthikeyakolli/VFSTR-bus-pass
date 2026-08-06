@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { useToast } from '@/hooks/useToast';
-import { Truck, Wrench, ShieldAlert, Fuel, Calendar, Plus } from 'lucide-react';
+import { Truck, Calendar, Plus } from 'lucide-react';
 
 export const FleetMaintenancePage: React.FC = () => {
-  const toast = useToast();
-  const [buses, setBuses] = useState([
+  const [buses] = useState([
     { id: '1', busNo: 'AP 07 TJ 4521', route: 'Route #14', driver: 'K. Venkateswarlu', fcExpiry: '2026-11-15', status: 'Optimal' },
     { id: '2', busNo: 'AP 16 TZ 8812', route: 'Route #08', driver: 'M. Sambaiah', fcExpiry: '2026-09-01', status: 'Service Due' },
     { id: '3', busNo: 'AP 07 TL 3099', route: 'Route #21', driver: 'P. Srinivasa Rao', fcExpiry: '2027-01-20', status: 'Optimal' },

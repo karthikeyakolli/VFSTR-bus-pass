@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
-import { QrCode, CheckCircle2, XCircle, UserCheck, ShieldCheck, Camera } from 'lucide-react';
+import { QrCode, CheckCircle2, XCircle, UserCheck, Camera } from 'lucide-react';
 
 export const DriverDashboardPage: React.FC = () => {
   const toast = useToast();

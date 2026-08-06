@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Navigation, Play, Pause, RotateCcw, Zap, Compass, Radio } from 'lucide-react';
+import { Play, Pause, RotateCcw, Zap, Radio } from 'lucide-react';
 import { InteractiveRouteMap } from './InteractiveRouteMap';
 import { RouteStopDesignItem } from './RouteStopsDesigner';
 
@@ -23,13 +23,12 @@ const DEFAULT_STOPS: RouteStopDesignItem[] = [
 
 export const BusGpsTracker: React.FC<BusGpsTrackerProps> = ({
   routeCode = 'Route #14',
-  routeName = 'Guntur City Express',
   stops = DEFAULT_STOPS,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentProgress, setCurrentProgress] = useState(0); // 0 to 100%
   const [currentSpeed, setCurrentSpeed] = useState(42); // km/h
-  const [estimatedArrival, setEstimatedArrival] = useState('8 mins');
+  const estimatedArrival = '8 mins';
 
   useEffect(() => {
     let interval: any;
