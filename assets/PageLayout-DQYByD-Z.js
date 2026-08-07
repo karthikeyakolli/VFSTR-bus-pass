@@ -1,0 +1,1 @@
+import{j as t}from"./vendor-core-BI97hK1t.js";import{c as e}from"./index-76TYhaiq.js";const m=({children:a,className:s})=>t.jsx("div",{className:e("space-y-6 animate-page pb-8",s),children:a});export{m as P};
