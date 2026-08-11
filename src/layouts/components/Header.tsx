@@ -41,11 +41,14 @@ export const Header: React.FC<HeaderProps> = ({ navItems = [] }) => {
                   key={item.href}
                   to={item.href}
                   className={cn(
-                    'text-sm font-medium transition-colors hover:text-primary',
-                    isActive ? 'text-primary font-semibold' : 'text-slate-600'
+                    'relative text-sm font-medium transition-all px-3 py-1.5 rounded-full hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-primary',
+                    isActive ? 'text-primary bg-primary/10 font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-300'
                   )}
                 >
                   {item.label}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-primary rounded-full" />
+                  )}
                 </Link>
               );
             })}
@@ -56,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({ navItems = [] }) => {
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2">
             <Link to="/login">
-              <Button variant="primary" size="sm" leftIcon={<GraduationCap className="h-4 w-4" />}>
+              <Button variant="primary" size="sm" className="shadow-sm hover:shadow-md hover:scale-[1.02] transition-all" leftIcon={<GraduationCap className="h-4 w-4" />}>
                 Student Sign In
               </Button>
             </Link>

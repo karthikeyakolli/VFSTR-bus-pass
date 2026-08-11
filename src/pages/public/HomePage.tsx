@@ -204,41 +204,42 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Hero Campus Image & Pass Graphic Placeholder */}
+            {/* Hero Campus Image & Pass Graphic */}
             <div className="lg:col-span-5 flex justify-center">
-              <Card className="w-full max-w-md border-2 border-primary/20 bg-card p-6 shadow-2xl relative overflow-hidden space-y-4">
-                {/* Large Campus Image Graphic Placeholder Banner */}
-                <div className="h-44 w-full rounded-xl bg-muted/60 border border-border/80 flex flex-col items-center justify-center p-4 text-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
-                  <div className="z-20 text-white space-y-1 mt-auto">
-                    <span className="text-xs font-bold uppercase tracking-wider block">Vadlamudi Main Campus</span>
-                    <span className="text-[11px] text-white/80 block">Vignan Foundation for Science, Technology & Research</span>
+              <Card className="w-full max-w-md border border-white/20 dark:border-slate-800 bg-card/80 backdrop-blur-xl p-6 shadow-2xl relative overflow-hidden space-y-4 rounded-3xl hover:shadow-primary/10 hover:shadow-2xl transition-all duration-300">
+                {/* Large Campus Image Graphic Banner */}
+                <div className="h-48 w-full rounded-2xl border border-border/80 flex flex-col items-center justify-end p-4 text-center relative overflow-hidden group">
+                  <img src="/VFSTR-bus-pass/hero_bus.png" alt="VFSTR Campus Bus" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent z-10" />
+                  <div className="z-20 text-white space-y-1">
+                    <span className="text-xs font-black uppercase tracking-wider block drop-shadow-md">Vadlamudi Main Campus Terminal</span>
+                    <span className="text-[11px] text-white/90 font-medium block">Vignan Foundation for Science, Technology & Research</span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between pb-3 border-b border-border">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                      <Bus className="h-4 w-4" />
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-md">
+                      <Bus className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-foreground">VFSTR DIGITAL BUS PASS</h4>
-                      <p className="text-[10px] text-muted-foreground">
+                      <h4 className="text-xs font-black text-foreground tracking-wide">VFSTR DIGITAL BUS PASS</h4>
+                      <p className="text-[10px] text-muted-foreground font-medium">
                         {isAuthenticated ? studentProfile.name : 'Academic Year 2026 - 2027'}
                       </p>
                     </div>
                   </div>
-                  <Badge variant={isAuthenticated ? 'secondary' : 'success'} dot>
+                  <Badge variant={isAuthenticated ? 'secondary' : 'success'} dot className="px-2.5 py-0.5 font-bold">
                     {isAuthenticated ? studentProfile.regNo : 'Active'}
                   </Badge>
                 </div>
 
                 {/* QR Code Graphic Placeholder */}
-                <div className="flex flex-col items-center justify-center p-4 bg-muted/30 rounded-xl border border-border">
-                  <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-background border border-border p-2 shadow-inner">
-                    <QrCode className="h-20 w-20 text-foreground" />
+                <div className="flex flex-col items-center justify-center p-4 bg-muted/40 backdrop-blur-md rounded-2xl border border-border/80">
+                  <div className="flex h-24 w-24 items-center justify-center rounded-xl bg-white border border-slate-200 p-2 shadow-md hover:scale-105 transition-transform">
+                    <QrCode className="h-20 w-20 text-slate-900" />
                   </div>
-                  <span className="text-[10px] font-mono text-muted-foreground mt-2">
+                  <span className="text-[10px] font-mono font-bold text-muted-foreground mt-2 tracking-wider">
                     PASS ID: VFSTR-2026-{studentProfile.regNo}
                   </span>
                 </div>

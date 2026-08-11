@@ -305,246 +305,275 @@ export const DigitalPassPage: React.FC = () => {
           </div>
 
           {/* 3D Flip Card Container */}
-          <div className="w-full min-h-[460px] sm:min-h-[500px] flex items-center justify-center" style={{ perspective: '1200px' }}>
-            <div
-              className="relative w-full transition-transform duration-700"
-              style={{
-                transformStyle: 'preserve-3d',
-                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-              }}
-            >
-              {/* ============================================================ */}
-              {/* FRONT SIDE OF PHYSICAL VFSTR BUS PASS (Matches Original Spec) */}
-              {/* ============================================================ */}
-              <div
-                id="vfstr-bus-pass-front"
-                className="w-full rounded-3xl bg-yellow-300 p-3 sm:p-5 shadow-2xl border-4 border-yellow-400 text-slate-950 font-sans"
-                style={{
-                  backgroundColor: '#facc15',
-                  backgroundImage: 'radial-gradient(#eab308 0.75px, transparent 0.75px)',
-                  backgroundSize: '12px 12px',
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden',
-                }}
-              >
-                {/* Outer Red Line Border Enclosing Front Pass Content */}
-                <div className="relative rounded-2xl border-2 border-red-600 p-4 sm:p-5 bg-yellow-300/90 shadow-inner space-y-3">
-                  
-                  {/* Top University Header & Logo (Matching Official Image Branding) */}
-                  <div className="flex items-start justify-between border-b-2 border-slate-900 pb-3 gap-2">
-                    <div className="flex-1 max-w-[340px] sm:max-w-[420px] pt-1">
-                      <img
-                        src={`${import.meta.env.BASE_URL}vignan-logo.svg`}
-                        alt="Vignan's Foundation for Science, Technology & Research"
-                        className="w-full h-auto object-contain"
-                      />
-                      <p className="text-[8px] sm:text-[9px] font-bold text-slate-900 tracking-tighter mt-1 text-center">
-                        Vadlamudi, Guntur, AP - 522213 • Ph : 7330813943, 9705444211
-                      </p>
-                    </div>
-
-                    {/* Student Passport Size Photo Box */}
-                    <div className="relative shrink-0 group/photo">
-                      <div className="h-28 w-22 sm:h-32 sm:w-26 rounded-md bg-white border-2 border-slate-950 overflow-hidden shadow-md relative">
-                        <img
-                          src={userPhoto}
-                          alt={studentProfile.name}
-                          className="h-full w-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold gap-1 cursor-pointer"
-                        >
-                          <Camera className="h-4 w-4" />
-                          <span>Change Photo</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Seat No, Bus No & Red BUS PASS Badge */}
-                  <div className="flex items-center justify-between gap-2 pt-1">
-                    <div className="space-y-1 text-xs sm:text-sm font-extrabold text-slate-950">
-                      <div>
-                        SEAT No. <span className="font-mono text-base font-black underline decoration-slate-900 ml-2">{passDetails.seatNo}</span>
-                      </div>
-                      <div>
-                        BUS No. <span className="font-mono text-base font-black underline decoration-slate-900 ml-2">{passDetails.busRegNo}</span>
-                      </div>
-                    </div>
-
-                    {/* Red Rounded BUS PASS Badge */}
-                    <div className="px-3 sm:px-4 py-1.5 rounded-xl bg-red-600 text-white font-black text-xs sm:text-sm tracking-wider shadow-md border-2 border-red-700 uppercase shrink-0">
-                      BUS PASS 2025-26
-                    </div>
-                  </div>
-
-                  {/* Handwritten Style Student Information Fields */}
-                  <div className="space-y-2 text-xs sm:text-sm font-extrabold text-slate-950 border-t-2 border-slate-900/40 pt-3">
-                    <div className="flex items-baseline gap-2">
-                      <span className="w-28 sm:w-32 shrink-0 text-slate-900 font-bold">Name :</span>
-                      <span className="font-black text-sm sm:text-base font-mono tracking-wide text-blue-950 uppercase border-b border-dashed border-slate-900/60 flex-1 pb-0.5">
-                        {studentProfile.name || 'P. M. SAI GOWTHAM REDDY'}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap items-baseline gap-2">
-                      <span className="w-28 sm:w-32 shrink-0 text-slate-900 font-bold">ID. No. :</span>
-                      <span className="font-black text-sm sm:text-base font-mono tracking-wide text-blue-950 border-b border-dashed border-slate-900/60 flex-1 pb-0.5">
-                        {studentProfile.regNo || '241FA04001'}
-                      </span>
-                      <div className="flex items-center gap-1 text-xs sm:text-sm ml-auto">
-                        <span className="font-bold">Year / Branch :</span>
-                        <span className="font-black font-mono border-b border-dashed border-slate-900/60 px-1">
-                          {passDetails.yearBranch}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-baseline gap-2">
-                      <span className="w-28 sm:w-32 shrink-0 text-slate-900 font-bold">Boarding Stage :</span>
-                      <span className="font-black text-xs sm:text-sm font-mono tracking-wide text-blue-950 uppercase border-b border-dashed border-slate-900/60 flex-1 pb-0.5">
-                        {passDetails.assignedStop}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Stamp & Authorized Signature Footer */}
-                  <div className="flex items-end justify-between border-t-2 border-slate-900/40 pt-3 mt-2">
-                    <div className="flex items-center gap-2">
-                      {/* Purple Round Transport Stamp */}
-                      <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full border-2 border-red-700 bg-red-600/10 flex items-center justify-center rotate-[-12deg] pointer-events-none p-1">
-                        <div className="text-[7px] sm:text-[8px] font-black text-red-800 uppercase text-center leading-none border border-red-700/60 rounded-full p-1 w-full h-full flex flex-col items-center justify-center">
-                          <span>VFSTR</span>
-                          <span>TRANSPORT</span>
-                          <span>SEAL</span>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-800 max-w-[140px] leading-tight hidden sm:block">
-                        Valid for Academic Session 2025-2026
-                      </span>
-                    </div>
-
-                    <div className="text-right space-y-0.5">
-                      <div className="h-6 flex items-end justify-end">
-                        <span className="font-serif italic text-red-700 font-bold text-sm tracking-wide">
-                          M.R.K. Murthy
-                        </span>
-                      </div>
-                      <span className="text-[11px] sm:text-xs font-black text-slate-950 uppercase block">
-                        Authorised Signature
-                      </span>
-                    </div>
-                  </div>
-
+          <div className="w-full flex items-center justify-center py-2" style={{ perspective: '1200px' }}>
+            <div className="relative w-full max-w-[580px] group">
+              {/* Dynamic Security Ribbon / Ticker Header */}
+              <div className="mb-2 flex items-center justify-between px-3.5 py-2 rounded-xl bg-emerald-950/90 text-emerald-300 border border-emerald-500/30 text-xs font-mono shadow-md">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span className="font-bold text-emerald-400">AUTHENTICATED LIVE PASS</span>
+                </div>
+                <div className="text-[11px] text-emerald-200/90">
+                  TOTP Token: <span className="font-bold text-white font-mono">{totpToken}</span> ({totpTimer}s)
                 </div>
               </div>
 
-              {/* ============================================================ */}
-              {/* BACK SIDE OF PHYSICAL VFSTR BUS PASS (Matches Original Spec) */}
-              {/* ============================================================ */}
+              {/* Holographic Sheen & 3D Flip Card */}
               <div
-                id="vfstr-bus-pass-back"
-                className="absolute inset-0 w-full h-full rounded-3xl bg-yellow-300 p-3 sm:p-5 shadow-2xl border-4 border-yellow-400 text-slate-950 font-sans flex flex-col justify-between"
+                id="vfstr-bus-pass-container"
+                className="relative w-full transition-transform duration-700 ease-in-out cursor-pointer select-none"
                 style={{
-                  backgroundColor: '#facc15',
-                  backgroundImage: 'radial-gradient(#eab308 0.75px, transparent 0.75px)',
-                  backgroundSize: '12px 12px',
-                  transform: 'rotateY(180deg)',
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden',
+                  transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                  transformStyle: 'preserve-3d',
                 }}
+                onClick={() => setIsFlipped(!isFlipped)}
+                title="Click to flip bus pass card"
               >
-                {/* Outer Red Line Border Enclosing Back Pass Content */}
-                <div className="relative rounded-2xl border-2 border-red-600 p-4 sm:p-5 bg-yellow-300/90 shadow-inner h-full flex flex-col justify-between space-y-4">
-                  
-                  {/* Top Hologram & Note Box Row */}
-                  <div className="flex items-start justify-between gap-3">
-                    {/* Note Box */}
-                    <div className="flex-1 space-y-1 text-xs sm:text-sm font-extrabold text-slate-950">
-                      <div className="flex items-start gap-1.5 leading-snug">
-                        <span className="px-2 py-0.5 rounded bg-red-600 text-white font-black text-xs uppercase shrink-0">
-                          Note :
-                        </span>
-                        <span className="text-[11px] sm:text-xs font-bold text-slate-900">
-                          Once the bus pass is issued to a student, it is not transferable and not exchangeable to anyone. If found like this it will be penalise for both students.
-                        </span>
-                      </div>
-                      <p className="text-[11px] sm:text-xs font-black text-slate-950 pt-1">
-                        *Once paid amount not refundable.
-                      </p>
-                    </div>
+                {/* ============================================================ */}
+                {/* FRONT SIDE OF PHYSICAL VFSTR BUS PASS */}
+                {/* ============================================================ */}
+                <div
+                  id="vfstr-bus-pass-front"
+                  className="w-full rounded-3xl bg-yellow-300 p-3 sm:p-5 shadow-2xl border-4 border-yellow-400 text-slate-950 font-sans relative overflow-hidden"
+                  style={{
+                    backgroundColor: '#facc15',
+                    backgroundImage: 'radial-gradient(#eab308 0.75px, transparent 0.75px)',
+                    backgroundSize: '12px 12px',
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
+                  }}
+                >
+                  {/* Holographic Watermark Sheen */}
+                  <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-tr from-transparent via-white/25 to-transparent opacity-40 mix-blend-overlay transition-opacity duration-300 group-hover:opacity-70" />
 
-                    {/* Live TOTP Rotating Security QR Badge */}
-                    <div className="flex flex-col items-center bg-white/90 p-2 rounded-xl border-2 border-slate-900 shadow-md shrink-0 space-y-1">
-                      <div className="h-14 w-14 rounded-lg bg-slate-950 p-1 flex items-center justify-center text-white relative">
-                        {/* Dynamic SVG QR pattern representation */}
-                        <div className="grid grid-cols-4 gap-0.5 w-full h-full p-0.5">
-                          <div className="bg-white rounded-xs" />
-                          <div className="bg-emerald-400 rounded-xs" />
-                          <div className="bg-white rounded-xs" />
-                          <div className="bg-white rounded-xs" />
-                          <div className="bg-white rounded-xs" />
-                          <div className="bg-transparent" />
-                          <div className="bg-emerald-400 rounded-xs" />
-                          <div className="bg-white rounded-xs" />
-                          <div className="bg-white rounded-xs" />
-                          <div className="bg-white rounded-xs" />
-                          <div className="bg-white rounded-xs" />
-                          <div className="bg-emerald-400 rounded-xs" />
-                          <div className="bg-white rounded-xs" />
-                          <div className="bg-emerald-400 rounded-xs" />
-                          <div className="bg-white rounded-xs" />
-                          <div className="bg-white rounded-xs" />
+                  {/* Outer Red Line Border Enclosing Front Pass Content */}
+                  <div className="relative rounded-2xl border-2 border-red-600 p-4 sm:p-5 bg-yellow-300/90 shadow-inner space-y-3">
+                    
+                    {/* Top University Header & Logo */}
+                    <div className="flex items-start justify-between border-b-2 border-slate-900 pb-3 gap-2">
+                      <div className="flex-1 max-w-[340px] sm:max-w-[420px] pt-1">
+                        <img
+                          src={`${import.meta.env.BASE_URL}vignan-logo.svg`}
+                          alt="Vignan's Foundation for Science, Technology & Research"
+                          className="w-full h-auto object-contain"
+                        />
+                        <p className="text-[8px] sm:text-[9px] font-bold text-slate-900 tracking-tighter mt-1 text-center">
+                          Vadlamudi, Guntur, AP - 522213 • Ph : 7330813943, 9705444211
+                        </p>
+                      </div>
+
+                      {/* Student Passport Size Photo Box */}
+                      <div className="relative shrink-0 group/photo">
+                        <div className="h-28 w-22 sm:h-32 sm:w-26 rounded-md bg-white border-2 border-slate-950 overflow-hidden shadow-md relative">
+                          <img
+                            src={userPhoto}
+                            alt={studentProfile.name}
+                            className="h-full w-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              fileInputRef.current?.click();
+                            }}
+                            className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold gap-1 cursor-pointer"
+                          >
+                            <Camera className="h-4 w-4" />
+                            <span>Change Photo</span>
+                          </button>
                         </div>
                       </div>
-                      <div className="text-center font-mono font-extrabold text-[10px] text-slate-900">
-                        TOTP: <span className="text-emerald-700 font-black">{totpToken}</span>
-                        <span className="block text-[8px] text-slate-600 font-sans">Refreshes in {totpTimer}s</span>
+                    </div>
+
+                    {/* Seat No, Bus No & Red BUS PASS Badge */}
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      <div className="space-y-1 text-xs sm:text-sm font-extrabold text-slate-950">
+                        <div>
+                          SEAT No. <span className="font-mono text-base font-black underline decoration-slate-900 ml-2">{passDetails.seatNo}</span>
+                        </div>
+                        <div>
+                          BUS No. <span className="font-mono text-base font-black underline decoration-slate-900 ml-2">{passDetails.busRegNo}</span>
+                        </div>
+                      </div>
+
+                      {/* Red Rounded BUS PASS Badge */}
+                      <div className="px-3 sm:px-4 py-1.5 rounded-xl bg-red-600 text-white font-black text-xs sm:text-sm tracking-wider shadow-md border-2 border-red-700 uppercase shrink-0">
+                        BUS PASS 2025-26
                       </div>
                     </div>
-                  </div>
 
-                  {/* Lined Address & Vehicle & Phone Section (Matching Image 2) */}
-                  <div className="space-y-4 my-auto pt-2">
-                    {/* Address Line */}
-                    <div className="space-y-1">
+                    {/* Student Information Fields */}
+                    <div className="space-y-2 text-xs sm:text-sm font-extrabold text-slate-950 border-t-2 border-slate-900/40 pt-3">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-sm font-black text-slate-950 w-24 shrink-0">Address</span>
-                        <span className="font-mono font-extrabold text-sm sm:text-base text-blue-950 border-b-2 border-slate-900 flex-1 pb-0.5">
-                          Guntur, Gorantla
+                        <span className="w-28 sm:w-32 shrink-0 text-slate-900 font-bold">Name :</span>
+                        <span className="font-black text-sm sm:text-base font-mono tracking-wide text-blue-950 uppercase border-b border-dashed border-slate-900/60 flex-1 pb-0.5">
+                          {studentProfile.name || 'P. M. SAI GOWTHAM REDDY'}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <span className="w-28 sm:w-32 shrink-0 text-slate-900 font-bold">ID. No. :</span>
+                        <span className="font-black text-sm sm:text-base font-mono tracking-wide text-blue-950 border-b border-dashed border-slate-900/60 flex-1 pb-0.5">
+                          {studentProfile.regNo || '241FA04001'}
+                        </span>
+                        <div className="flex items-center gap-1 text-xs sm:text-sm ml-auto">
+                          <span className="font-bold">Year / Branch :</span>
+                          <span className="font-black font-mono border-b border-dashed border-slate-900/60 px-1">
+                            {passDetails.yearBranch}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-baseline gap-2">
+                        <span className="w-28 sm:w-32 shrink-0 text-slate-900 font-bold">Boarding Stage :</span>
+                        <span className="font-black text-xs sm:text-sm font-mono tracking-wide text-blue-950 uppercase border-b border-dashed border-slate-900/60 flex-1 pb-0.5">
+                          {passDetails.assignedStop}
                         </span>
                       </div>
                     </div>
 
-                    {/* Bus Reg No Line */}
-                    <div className="space-y-1">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-sm font-black text-slate-950 w-24 shrink-0">Vehicle No.</span>
-                        <span className="font-mono font-black text-base sm:text-lg text-blue-950 border-b-2 border-slate-900 flex-1 pb-0.5">
-                          {passDetails.busRegNo}
+                    {/* Stamp & Authorized Signature Footer */}
+                    <div className="flex items-end justify-between border-t-2 border-slate-900/40 pt-3 mt-2">
+                      <div className="flex items-center gap-2">
+                        {/* Purple Round Transport Stamp */}
+                        <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full border-2 border-red-700 bg-red-600/10 flex items-center justify-center rotate-[-12deg] pointer-events-none p-1">
+                          <div className="text-[7px] sm:text-[8px] font-black text-red-800 uppercase text-center leading-none border border-red-700/60 rounded-full p-1 w-full h-full flex flex-col items-center justify-center">
+                            <span>VFSTR</span>
+                            <span>TRANSPORT</span>
+                            <span>SEAL</span>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-800 max-w-[140px] leading-tight hidden sm:block">
+                          Valid for Academic Session 2025-2026
+                        </span>
+                      </div>
+
+                      <div className="text-right space-y-0.5">
+                        <div className="h-6 flex items-end justify-end">
+                          <span className="font-serif italic text-red-700 font-bold text-sm tracking-wide">
+                            M.R.K. Murthy
+                          </span>
+                        </div>
+                        <span className="text-[11px] sm:text-xs font-black text-slate-950 uppercase block">
+                          Authorised Signature
                         </span>
                       </div>
                     </div>
 
-                    {/* Phone No Line */}
-                    <div className="space-y-1">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-sm font-black text-slate-950 w-24 shrink-0">Phone No.</span>
-                        <span className="font-mono font-black text-base sm:text-lg text-blue-950 border-b-2 border-slate-900 flex-1 pb-0.5">
-                          {passDetails.phoneNumber}
-                        </span>
+                  </div>
+                </div>
+
+                {/* ============================================================ */}
+                {/* BACK SIDE OF PHYSICAL VFSTR BUS PASS */}
+                {/* ============================================================ */}
+                <div
+                  id="vfstr-bus-pass-back"
+                  className="absolute inset-0 w-full h-full rounded-3xl bg-yellow-300 p-3 sm:p-5 shadow-2xl border-4 border-yellow-400 text-slate-950 font-sans flex flex-col justify-between overflow-hidden"
+                  style={{
+                    backgroundColor: '#facc15',
+                    backgroundImage: 'radial-gradient(#eab308 0.75px, transparent 0.75px)',
+                    backgroundSize: '12px 12px',
+                    transform: 'rotateY(180deg)',
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
+                  }}
+                >
+                  {/* Holographic Watermark Sheen */}
+                  <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-tr from-transparent via-white/25 to-transparent opacity-40 mix-blend-overlay transition-opacity duration-300 group-hover:opacity-70" />
+
+                  {/* Outer Red Line Border Enclosing Back Pass Content */}
+                  <div className="relative rounded-2xl border-2 border-red-600 p-4 sm:p-5 bg-yellow-300/90 shadow-inner h-full flex flex-col justify-between space-y-4">
+                    
+                    {/* Top Hologram & Note Box Row */}
+                    <div className="flex items-start justify-between gap-3">
+                      {/* Note Box */}
+                      <div className="flex-1 space-y-1 text-xs sm:text-sm font-extrabold text-slate-950">
+                        <div className="flex items-start gap-1.5 leading-snug">
+                          <span className="px-2 py-0.5 rounded bg-red-600 text-white font-black text-xs uppercase shrink-0">
+                            Note :
+                          </span>
+                          <span className="text-[11px] sm:text-xs font-bold text-slate-900">
+                            Once the bus pass is issued to a student, it is not transferable and not exchangeable to anyone. If found like this it will be penalised for both students.
+                          </span>
+                        </div>
+                        <p className="text-[11px] sm:text-xs font-black text-slate-950 pt-1">
+                          *Once paid amount not refundable.
+                        </p>
+                      </div>
+
+                      {/* Live TOTP Rotating Security QR Badge */}
+                      <div className="flex flex-col items-center bg-white/90 p-2 rounded-xl border-2 border-slate-900 shadow-md shrink-0 space-y-1">
+                        <div className="h-14 w-14 rounded-lg bg-slate-950 p-1 flex items-center justify-center text-white relative">
+                          {/* Dynamic SVG QR pattern representation */}
+                          <div className="grid grid-cols-4 gap-0.5 w-full h-full p-0.5">
+                            <div className="bg-white rounded-xs" />
+                            <div className="bg-emerald-400 rounded-xs" />
+                            <div className="bg-white rounded-xs" />
+                            <div className="bg-white rounded-xs" />
+                            <div className="bg-white rounded-xs" />
+                            <div className="bg-transparent" />
+                            <div className="bg-emerald-400 rounded-xs" />
+                            <div className="bg-white rounded-xs" />
+                            <div className="bg-white rounded-xs" />
+                            <div className="bg-white rounded-xs" />
+                            <div className="bg-white rounded-xs" />
+                            <div className="bg-emerald-400 rounded-xs" />
+                            <div className="bg-white rounded-xs" />
+                            <div className="bg-emerald-400 rounded-xs" />
+                            <div className="bg-white rounded-xs" />
+                            <div className="bg-white rounded-xs" />
+                          </div>
+                        </div>
+                        <div className="text-center font-mono font-extrabold text-[10px] text-slate-900">
+                          TOTP: <span className="text-emerald-700 font-black">{totpToken}</span>
+                          <span className="block text-[8px] text-slate-600 font-sans">Refreshes in {totpTimer}s</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Back Footer */}
-                  <div className="border-t-2 border-slate-900/40 pt-2 flex items-center justify-between text-[10px] font-bold text-slate-800">
-                    <span>VFSTR Transport Cell Security Verification Desk</span>
-                    <span>Admin Block Room 104</span>
-                  </div>
+                    {/* Lined Address & Vehicle & Phone Section */}
+                    <div className="space-y-4 my-auto pt-2">
+                      {/* Address Line */}
+                      <div className="space-y-1">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm font-black text-slate-950 w-24 shrink-0">Address</span>
+                          <span className="font-mono font-extrabold text-sm sm:text-base text-blue-950 border-b-2 border-slate-900 flex-1 pb-0.5">
+                            Guntur, Gorantla
+                          </span>
+                        </div>
+                      </div>
 
+                      {/* Bus Reg No Line */}
+                      <div className="space-y-1">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm font-black text-slate-950 w-24 shrink-0">Vehicle No.</span>
+                          <span className="font-mono font-black text-base sm:text-lg text-blue-950 border-b-2 border-slate-900 flex-1 pb-0.5">
+                            {passDetails.busRegNo}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Phone No Line */}
+                      <div className="space-y-1">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm font-black text-slate-950 w-24 shrink-0">Phone No.</span>
+                          <span className="font-mono font-black text-base sm:text-lg text-blue-950 border-b-2 border-slate-900 flex-1 pb-0.5">
+                            {passDetails.phoneNumber}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Back Footer */}
+                    <div className="border-t-2 border-slate-900/40 pt-2 flex items-center justify-between text-[10px] font-bold text-slate-800">
+                      <span>VFSTR Transport Cell Security Verification Desk</span>
+                      <span>Admin Block Room 104</span>
+                    </div>
+
+                  </div>
                 </div>
               </div>
             </div>

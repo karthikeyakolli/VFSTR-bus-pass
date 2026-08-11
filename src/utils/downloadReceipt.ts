@@ -100,6 +100,13 @@ export const downloadCombinedBusPassPdf = async (
       useCORS: true,
       backgroundColor: null,
       logging: false,
+      onclone: (clonedDoc) => {
+        const el = clonedDoc.getElementById(frontElementId);
+        if (el) {
+          el.style.transform = 'none';
+          el.style.backfaceVisibility = 'visible';
+        }
+      },
     });
     const frontImgData = frontCanvas.toDataURL('image/png', 1.0);
 
@@ -109,6 +116,13 @@ export const downloadCombinedBusPassPdf = async (
       useCORS: true,
       backgroundColor: null,
       logging: false,
+      onclone: (clonedDoc) => {
+        const el = clonedDoc.getElementById(backElementId);
+        if (el) {
+          el.style.transform = 'none';
+          el.style.backfaceVisibility = 'visible';
+        }
+      },
     });
     const backImgData = backCanvas.toDataURL('image/png', 1.0);
 
@@ -142,6 +156,13 @@ export const downloadCardElementAsImage = async (elementId: string, filename: st
       useCORS: true,
       backgroundColor: null,
       logging: false,
+      onclone: (clonedDoc) => {
+        const el = clonedDoc.getElementById(elementId);
+        if (el) {
+          el.style.transform = 'none';
+          el.style.backfaceVisibility = 'visible';
+        }
+      },
     });
     const image = canvas.toDataURL('image/png', 1.0);
     const link = document.createElement('a');
