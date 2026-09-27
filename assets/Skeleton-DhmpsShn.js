@@ -1,0 +1,1 @@
+import{j as n,c as l}from"./index-D8fcrDtb.js";const d=({className:r,variant:e="rectangular",...t})=>{const a={text:"h-4 w-full rounded-lg",circular:"rounded-full",rectangular:"rounded-xl",card:"rounded-2xl"};return n.jsx("div",{className:l("skeleton-shimmer",a[e],r),"aria-hidden":"true",...t})};export{d as S};
