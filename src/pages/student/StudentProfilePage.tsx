@@ -84,18 +84,20 @@ export const StudentProfilePage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentProfile.name, studentProfile.phone, studentProfile.emergencyContact]);
 
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   const onSave = (data: ProfileFormValues) => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      updateStudentProfile({
-        name: data.name,
-        phone: data.phone,
-        emergencyContact: data.emergencyContact,
-      });
-      setIsEditing(false);
-      toast.success('Profile Updated', 'Student transport profile details saved successfully.');
-    }, 800);
+    updateStudentProfile({
+      name: data.name,
+      phone: data.phone,
+      emergencyContact: data.emergencyContact,
+      section: data.section,
+      address: data.address,
+    });
+    setIsLoading(false);
+    setIsEditing(false);
+    toast.success('Profile Updated', 'Student transport profile details saved successfully.');
   };
 
   const handleCancel = () => {
@@ -104,11 +106,37 @@ export const StudentProfilePage: React.FC = () => {
   };
 
   const handlePhotoUpload = () => {
-    toast.info('Photo Upload', 'Student photo upload dialog opened. Image updated.');
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('File Too Large', 'Please select an image smaller than 2MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        updateStudentProfile({ avatarUrl: result });
+        toast.success('Photo Updated', 'Official student pass photograph updated.');
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto animate-page">
+      {/* Hidden File Input for Avatar Upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       {/* 1. Profile Hero Banner */}
       <Card className="p-6 bg-gradient-to-r from-primary/5 via-card to-secondary/5 border-primary/15">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -117,6 +145,7 @@ export const StudentProfilePage: React.FC = () => {
             <div className="relative group shrink-0">
               <Avatar
                 name={studentProfile.name}
+                src={studentProfile.avatarUrl}
                 size="xl"
                 className="h-20 w-20 border-2 border-primary/25 text-xl ring-4 ring-primary/10"
               />

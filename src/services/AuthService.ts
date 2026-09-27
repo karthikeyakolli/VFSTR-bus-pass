@@ -35,9 +35,58 @@ export class AuthService {
   }
 
   /**
-   * Authenticate student using Roll Number OR Email + Password (defaults to regNo)
+   * Authenticate student, faculty, or staff using Roll Number / Employee ID / Email
    */
-  static async login({ identifier, password }: LoginParams): Promise<AuthResponse> {
+  static async login({ identifier, password, role }: LoginParams): Promise<AuthResponse> {
+    const trimmedId = identifier.trim();
+
+    // 0. Check Faculty Authentication path
+    if (role === 'faculty' || trimmedId.toUpperCase().startsWith('VFSTR-FAC') || trimmedId.toLowerCase().includes('@vignan.ac.in')) {
+      const { VFSTR_FACULTY_SEED } = await import('@/constants/facultySeedData');
+      const cleanUpper = trimmedId.toUpperCase();
+      const cleanLower = trimmedId.toLowerCase();
+      const faculty = VFSTR_FACULTY_SEED.find(
+        (f) => f.employeeId.toUpperCase() === cleanUpper || f.email.toLowerCase() === cleanLower
+      );
+
+      const facultyUser: User = {
+        id: faculty ? faculty.id : `fac_${cleanUpper.replace(/[^A-Z0-9]/g, '')}`,
+        name: faculty ? faculty.fullName : `Faculty Member (${trimmedId})`,
+        email: faculty ? faculty.email : `${trimmedId.toLowerCase()}@vignan.ac.in`,
+        role: 'faculty',
+      };
+
+      localStorage.setItem('vfstr_current_user', JSON.stringify(facultyUser));
+      localStorage.setItem('vfstr-user-session', JSON.stringify({ user: facultyUser }));
+      return { user: facultyUser };
+    }
+
+    // Driver path
+    if (role === 'driver' || trimmedId.toUpperCase().startsWith('DRV-')) {
+      const driverUser: User = {
+        id: `drv_${trimmedId.toLowerCase()}`,
+        name: `Driver Staff (${trimmedId})`,
+        email: `${trimmedId.toLowerCase()}@transport.vignan.ac.in`,
+        role: 'driver',
+      };
+      localStorage.setItem('vfstr_current_user', JSON.stringify(driverUser));
+      localStorage.setItem('vfstr-user-session', JSON.stringify({ user: driverUser }));
+      return { user: driverUser };
+    }
+
+    // Admin / Transport Convener path
+    if (role === 'admin' || trimmedId.toUpperCase().startsWith('VFSTR-ADM') || trimmedId.toLowerCase().includes('admin')) {
+      const adminUser: User = {
+        id: 'adm_dean_transport',
+        name: 'Dr. K. Sathyanarayana (Dean Transport)',
+        email: 'transport.dean@vignan.ac.in',
+        role: 'admin',
+      };
+      localStorage.setItem('vfstr_current_user', JSON.stringify(adminUser));
+      localStorage.setItem('vfstr-user-session', JSON.stringify({ user: adminUser }));
+      return { user: adminUser };
+    }
+
     const regNo = this.extractRegNo(identifier);
     const email = `${regNo.toLowerCase()}@gmail.com`;
 
@@ -55,6 +104,7 @@ export class AuthService {
 
         // Persist session locally
         localStorage.setItem('vfstr_current_user', JSON.stringify(user));
+        localStorage.setItem('vfstr-user-session', JSON.stringify({ user }));
         return { user };
       }
 
@@ -66,14 +116,19 @@ export class AuthService {
         role: 'student',
       };
       localStorage.setItem('vfstr_current_user', JSON.stringify(fallbackUser));
+      localStorage.setItem('vfstr-user-session', JSON.stringify({ user: fallbackUser }));
       return { user: fallbackUser };
     }
 
     // 2. Supabase Integration path
+    if (!password) {
+      return { user: null, error: 'Password is required for student authentication.' };
+    }
+
     try {
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
-        password: password || regNo,
+        password,
       });
 
       if (authError || !authData.user) {
@@ -86,6 +141,7 @@ export class AuthService {
             role: 'student',
           };
           localStorage.setItem('vfstr_current_user', JSON.stringify(user));
+          localStorage.setItem('vfstr-user-session', JSON.stringify({ user }));
           return { user };
         }
         return { user: null, error: authError?.message || 'Invalid Roll Number / Email or password' };
@@ -107,6 +163,7 @@ export class AuthService {
           avatarUrl: s.avatar_url || undefined,
         };
         localStorage.setItem('vfstr_current_user', JSON.stringify(user));
+        localStorage.setItem('vfstr-user-session', JSON.stringify({ user }));
         return { user };
       }
 
@@ -117,6 +174,7 @@ export class AuthService {
         role: 'student',
       };
       localStorage.setItem('vfstr_current_user', JSON.stringify(user));
+      localStorage.setItem('vfstr-user-session', JSON.stringify({ user }));
       return { user };
     } catch (err: any) {
       return { user: null, error: err?.message || 'Authentication error' };
@@ -124,13 +182,65 @@ export class AuthService {
   }
 
   /**
+   * Switch active demo role instantaneously for prototype testing
+   */
+  static async switchDemoRole(targetRole: UserRole): Promise<User> {
+    let targetUser: User;
+
+    switch (targetRole) {
+      case 'admin':
+      case 'superadmin':
+        targetUser = {
+          id: 'adm_dean_transport',
+          name: 'Dr. K. Sathyanarayana (Dean Transport)',
+          email: 'transport.dean@vignan.ac.in',
+          role: targetRole,
+        };
+        break;
+      case 'faculty':
+        targetUser = {
+          id: 'fac_101',
+          name: 'Dr. M. S. R. Murthy (Dean CSE)',
+          email: 'msr.murthy@vignan.ac.in',
+          role: 'faculty',
+        };
+        break;
+      case 'driver':
+        targetUser = {
+          id: 'drv_001',
+          name: 'K. Venkateswarlu (Route #14)',
+          email: 'venkateswarlu.drv@transport.vignan.ac.in',
+          role: 'driver',
+        };
+        break;
+      case 'student':
+      default:
+        targetUser = {
+          id: 'usr_251fa04001',
+          name: 'AARADHYULA LALITHA LAKSHMI SAMHITHA',
+          email: '251fa04001@gmail.com',
+          role: 'student',
+        };
+        break;
+    }
+
+    const payload = JSON.stringify(targetUser);
+    localStorage.setItem('vfstr_current_user', payload);
+    localStorage.setItem('vfstr-user-session', JSON.stringify({ user: targetUser }));
+    sessionStorage.setItem('vfstr-user-session', JSON.stringify({ user: targetUser }));
+
+    return targetUser;
+  }
+
+  /**
    * Fetch current authenticated session user
    */
   static async getCurrentUser(): Promise<User | null> {
-    const saved = localStorage.getItem('vfstr_current_user');
+    const saved = localStorage.getItem('vfstr_current_user') || localStorage.getItem('vfstr-user-session') || sessionStorage.getItem('vfstr-user-session');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return parsed.user ? parsed.user : parsed;
       } catch {}
     }
 
@@ -210,6 +320,8 @@ export class AuthService {
    */
   static async logout(): Promise<void> {
     localStorage.removeItem('vfstr_current_user');
+    localStorage.removeItem('vfstr-user-session');
+    sessionStorage.removeItem('vfstr-user-session');
     if (isSupabaseConfigured) {
       await supabase.auth.signOut();
     }

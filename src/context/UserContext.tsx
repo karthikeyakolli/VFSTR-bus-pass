@@ -37,11 +37,43 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadProfile = useCallback(async () => {
     if (user) {
-      try {
-        const profile = await StudentService.getProfile(user.id || user.email);
-        setStudentProfile(profile);
-      } catch (err) {
-        console.error('Failed to load profile for user', err);
+      if (user.role === 'student') {
+        try {
+          const profile = await StudentService.getProfile(user.id || user.email);
+          setStudentProfile(profile);
+        } catch (err) {
+          console.error('Failed to load profile for user', err);
+        }
+      } else {
+        setStudentProfile({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          regNo: user.email ? user.email.split('@')[0].toUpperCase() : user.id,
+          department:
+            user.role === 'faculty'
+              ? 'Computer Science & Engineering'
+              : user.role === 'driver'
+              ? 'Fleet Operations'
+              : 'Transport Administration',
+          program:
+            user.role === 'faculty'
+              ? 'Faculty Staff'
+              : user.role === 'driver'
+              ? 'Commercial Crew'
+              : 'University Administration',
+          academicYear: '2026 - 2027',
+          semester: 'N/A',
+          section: 'Staff',
+          phone: '+91 98765 43210',
+          emergencyContact: '+91 98765 00000',
+          counsellor: 'Dean Transport Operations',
+          eligibility: 'transport_user',
+          transportStatus: 'active',
+          pickupPoint: 'VFSTR Campus Terminal',
+          isTransportUser: true,
+        });
       }
     }
   }, [user]);

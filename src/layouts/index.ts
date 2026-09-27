@@ -1,6 +1,7 @@
 export * from './RootLayout';
 export * from './PublicLayout';
 export * from './StudentLayout';
+export * from './AdminLayout';
 export * from './AuthLayout';
 export * from './components/Header';
 export * from './components/Sidebar';

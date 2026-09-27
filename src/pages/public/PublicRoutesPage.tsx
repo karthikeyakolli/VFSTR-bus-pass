@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { MASTER_ROUTES_AY2026_27, MASTER_CORRIDORS } from '@/constants/masterRoutesSeed';
+import { RealTimeTransitMap } from '@/components/map';
 import {
   Bus,
   Search,
@@ -14,12 +15,15 @@ import {
   ShieldCheck,
   Building,
   Sparkles,
+  Map as MapIcon,
+  ListOrdered,
 } from 'lucide-react';
 
 export const PublicRoutesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCorridor, setSelectedCorridor] = useState<string>('ALL');
   const [expandedRouteNumber, setExpandedRouteNumber] = useState<number | null>(1);
+  const [routeViewMode, setRouteViewMode] = useState<Record<number, 'map' | 'stops'>>({ 1: 'map' });
 
   const filteredRoutes = useMemo(() => {
     return MASTER_ROUTES_AY2026_27.filter((r) => {
@@ -203,34 +207,79 @@ export const PublicRoutesPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Expandable Stops Sequence */}
+                  {/* Expandable Stops / Live Map Sequence */}
                   {isExpanded && (
-                    <div className="pt-3 border-t border-border/80 space-y-2 text-xs animate-in fade-in duration-200">
-                      <span className="text-[10px] uppercase font-bold text-muted-foreground block">
-                        Canonical Stop Sequence ({r.stops.length} Stops)
-                      </span>
-                      <div className="space-y-1.5">
-                        {r.stops.map((stop) => (
-                          <div
-                            key={stop.sequence}
-                            className={`p-2 rounded-lg border flex items-center justify-between text-xs ${
-                              stop.isCampus
-                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-bold'
-                                : stop.isTerminal
-                                ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300 font-bold'
-                                : 'bg-background border-border text-foreground'
+                    <div className="pt-3 border-t border-border/80 space-y-3 text-xs animate-in fade-in duration-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+                          Route Details & GIS Tracking ({r.stops.length} Stops)
+                        </span>
+
+                        {/* View Mode Toggle: Map vs List */}
+                        <div className="flex items-center bg-muted/60 p-0.5 rounded-lg border border-border">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setRouteViewMode((prev) => ({ ...prev, [r.routeNumber]: 'map' }))
+                            }
+                            className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
+                              (routeViewMode[r.routeNumber] || 'map') === 'map'
+                                ? 'bg-primary text-primary-foreground shadow-xs'
+                                : 'text-muted-foreground hover:text-foreground'
                             }`}
                           >
-                            <div className="flex items-center gap-2">
-                              <span className="h-5 w-5 rounded-full bg-muted text-[10px] font-mono font-bold flex items-center justify-center">
-                                {stop.sequence}
-                              </span>
-                              <span>{stop.stopName}</span>
-                            </div>
-                            <span className="text-[10px] font-semibold opacity-80">{stop.district}</span>
-                          </div>
-                        ))}
+                            <MapIcon className="h-3 w-3" /> Live Map
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setRouteViewMode((prev) => ({ ...prev, [r.routeNumber]: 'stops' }))
+                            }
+                            className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
+                              routeViewMode[r.routeNumber] === 'stops'
+                                ? 'bg-primary text-primary-foreground shadow-xs'
+                                : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                          >
+                            <ListOrdered className="h-3 w-3" /> Stops ({r.stops.length})
+                          </button>
+                        </div>
                       </div>
+
+                      {(routeViewMode[r.routeNumber] || 'map') === 'map' ? (
+                        <div className="rounded-xl overflow-hidden border border-border shadow-inner">
+                          <RealTimeTransitMap
+                            routeNumber={r.routeCode}
+                            routeName={r.finalTerminal}
+                            stops={r.stops}
+                            heightClassName="h-[280px]"
+                            showControls={true}
+                          />
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+                          {r.stops.map((stop) => (
+                            <div
+                              key={stop.sequence}
+                              className={`p-2 rounded-lg border flex items-center justify-between text-xs ${
+                                stop.isCampus
+                                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-bold'
+                                  : stop.isTerminal
+                                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300 font-bold'
+                                  : 'bg-background border-border text-foreground'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="h-5 w-5 rounded-full bg-muted text-[10px] font-mono font-bold flex items-center justify-center">
+                                  {stop.sequence}
+                                </span>
+                                <span>{stop.stopName}</span>
+                              </div>
+                              <span className="text-[10px] font-semibold opacity-80">{stop.district}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -250,7 +299,7 @@ export const PublicRoutesPage: React.FC = () => {
                     onClick={() => setExpandedRouteNumber(isExpanded ? null : r.routeNumber)}
                     className="text-xs font-bold"
                   >
-                    {isExpanded ? 'Hide Stops' : 'View Stops'}
+                    {isExpanded ? 'Hide Details' : 'View Map & Stops'}
                   </Button>
                 </div>
               </Card>

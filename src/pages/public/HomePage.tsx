@@ -30,6 +30,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import { UserCheck } from 'lucide-react';
+import { RealTimeTransitMap } from '@/components/map';
 
 export const HomePage: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -263,6 +264,54 @@ export const HomePage: React.FC = () => {
               />
             ))}
           </div>
+        </Container>
+      </section>
+
+      {/* Real-Time Live Campus Transit Map Network Section */}
+      <section className="py-8 bg-muted/30">
+        <Container>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold mb-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                Live Highway Fleet Radar
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+                Real-Time Campus Transit Network Map
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Live GPS telemetry connecting Guntur, Vijayawada, Mangalagiri, and Tenali to Vadlamudi Campus.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link to="/routes">
+                <Button variant="outline" size="sm" className="rounded-xl">
+                  Explore All 71 Routes
+                </Button>
+              </Link>
+              <Link to="/navigation">
+                <Button size="sm" className="rounded-xl font-bold bg-primary shadow-md">
+                  Launch GPS Navigation ↗
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <RealTimeTransitMap
+            stops={[
+              { sequence: 1, stopName: 'Guntur NTR Circle', landmark: 'Bus Station Hub', morningTime: '07:15 AM', latitude: 16.3025, longitude: 80.4431 },
+              { sequence: 2, stopName: 'Chuttugunta Circle', landmark: 'Municipal Tank', morningTime: '07:25 AM', latitude: 16.291, longitude: 80.4512 },
+              { sequence: 3, stopName: 'Budampadu NH-16 Junction', landmark: 'National Highway Circle', morningTime: '07:38 AM', latitude: 16.2589, longitude: 80.4854 },
+              { sequence: 4, stopName: 'Narakoduru Center', landmark: 'Andhra Bank Corner', morningTime: '07:48 AM', latitude: 16.2445, longitude: 80.5189 },
+              { sequence: 5, stopName: 'VFSTR Central Bus Terminal', landmark: 'Vadlamudi Campus Arch', morningTime: '08:15 AM', latitude: 16.2334, longitude: 80.5475, isCampus: true },
+            ]}
+            busRegNo="AP 07 TJ 4521"
+            routeNumber="Route #14"
+            routeName="Guntur City Express"
+            driverName="K. Venkateswarlu"
+            heightClassName="h-[400px] sm:h-[460px]"
+            showControls={true}
+          />
         </Container>
       </section>
 

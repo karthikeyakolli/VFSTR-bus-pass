@@ -7,6 +7,10 @@ export const PublicLayout: React.FC = () => {
   const publicNavItems = [
     { label: 'Home', href: '/' },
     { label: 'Routes & Timings', href: '/routes' },
+    { label: 'Parent Tracker', href: '/parent' },
+    { label: 'Guest Pass', href: '/guest-pass' },
+    { label: 'Lost & Found', href: '/lost-and-found' },
+    { label: 'Gate Scanner', href: '/conductor' },
     { label: 'Fee Structure', href: '/fees' },
     { label: 'Help & FAQs', href: '/help' },
   ];

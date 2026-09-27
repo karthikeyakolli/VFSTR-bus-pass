@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/useToast';
 import { PageLayout } from '@/layouts/components/PageLayout';
 import { RouteStopsDesigner } from '@/components/routes/RouteStopsDesigner';
 import { MASTER_ROUTES_AY2026_27 } from '@/constants/masterRoutesSeed';
+import { RealTimeTransitMap } from '@/components/map';
 import {
   Bus,
   MapPin,
@@ -28,7 +29,9 @@ import {
   LocateFixed,
   Layers,
   Info,
+  Star,
 } from 'lucide-react';
+import { DriverRatingModal } from '@/features/feedback/DriverRatingModal';
 
 export interface RouteStop {
   id: string;
@@ -44,6 +47,7 @@ export interface RouteStop {
 }
 
 export const StudentRoutesPage: React.FC = () => {
+  const navigate = useNavigate();
   const { studentProfile } = useUser();
   const toast = useToast();
   const [stopSearch, setStopSearch] = useState('');
@@ -52,20 +56,12 @@ export const StudentRoutesPage: React.FC = () => {
   const [nearestStopId, setNearestStopId] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [liveMapMode, setLiveMapMode] = useState<'visual' | 'satellite'>('visual');
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [scheduleMode, setScheduleMode] = useState<'REGULAR' | 'EXAM_SHIFT' | 'LIBRARY_NIGHT' | 'FEST_SPECIAL'>('REGULAR');
 
   const currentMasterRoute = useMemo(() => {
     return MASTER_ROUTES_AY2026_27.find((r) => r.routeCode === selectedRouteId) || MASTER_ROUTES_AY2026_27[0];
   }, [selectedRouteId]);
-
-  const mapBbox = useMemo(() => {
-    const lats = currentMasterRoute.stops.map((s: { latitude: number }) => s.latitude);
-    const lngs = currentMasterRoute.stops.map((s: { longitude: number }) => s.longitude);
-    const minLat = Math.min(...lats) - 0.03;
-    const maxLat = Math.max(...lats) + 0.03;
-    const minLng = Math.min(...lngs) - 0.03;
-    const maxLng = Math.max(...lngs) + 0.03;
-    return `${minLng}%2C${minLat}%2C${maxLng}%2C${maxLat}`;
-  }, [currentMasterRoute]);
 
   const assignedRouteDetails = {
     routeId: 'R14',
@@ -76,7 +72,14 @@ export const StudentRoutesPage: React.FC = () => {
     morningStart: '07:00 AM',
     pickupTime: '07:10 AM',
     campusArrival: '07:50 AM',
-    eveningDeparture: '05:15 PM',
+    eveningDeparture:
+      scheduleMode === 'EXAM_SHIFT'
+        ? '01:30 PM (Exam Departure)'
+        : scheduleMode === 'LIBRARY_NIGHT'
+        ? '06:45 PM & 08:00 PM (Night Shuttle)'
+        : scheduleMode === 'FEST_SPECIAL'
+        ? '09:30 PM (Fest Shuttles)'
+        : '05:15 PM (Regular Departure)',
     driverName: 'Mr. K. Venkateswarlu',
     driverExperience: '12 Years VFSTR Service',
     driverPhone: '+91 94401 23456',
@@ -237,9 +240,9 @@ export const StudentRoutesPage: React.FC = () => {
               variant="primary"
               size="sm"
               leftIcon={<Navigation className="h-3.5 w-3.5" />}
-              onClick={() => window.open('https://vignan.ac.in/transport/tracking', '_blank', 'noopener,noreferrer')}
+              onClick={() => navigate('/student/navigation')}
             >
-              Live GPS Radar
+              Live GPS Cockpit
             </Button>
           </div>
         }
@@ -267,6 +270,61 @@ export const StudentRoutesPage: React.FC = () => {
           <Badge variant="secondary" className="shrink-0 font-bold">GPS Accuracy: ± 15m</Badge>
         </div>
       )}
+
+      {/* University Operational Shift & Exam Timetable Selector */}
+      <div className="p-4 rounded-2xl bg-card border border-border shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-primary" />
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">University Transit Timetable Shift</span>
+          </div>
+          <div className="text-sm font-extrabold text-foreground mt-0.5">
+            {scheduleMode === 'REGULAR' && 'Standard Daily Schedule (05:15 PM Evening Return)'}
+            {scheduleMode === 'EXAM_SHIFT' && 'Mid / Semester Exam Shift (01:30 PM Early Return Departure)'}
+            {scheduleMode === 'LIBRARY_NIGHT' && 'Night Library & Research Shuttle (06:45 PM & 08:00 PM)'}
+            {scheduleMode === 'FEST_SPECIAL' && 'Vignan Mahotsav Special Festival Transit (Loops until 10:00 PM)'}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 p-1 bg-muted rounded-xl flex-wrap">
+          <button
+            type="button"
+            onClick={() => setScheduleMode('REGULAR')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              scheduleMode === 'REGULAR' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Regular (5:15 PM)
+          </button>
+          <button
+            type="button"
+            onClick={() => setScheduleMode('EXAM_SHIFT')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              scheduleMode === 'EXAM_SHIFT' ? 'bg-amber-600 text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Exam Shift (1:30 PM)
+          </button>
+          <button
+            type="button"
+            onClick={() => setScheduleMode('LIBRARY_NIGHT')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              scheduleMode === 'LIBRARY_NIGHT' ? 'bg-indigo-600 text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Night Shuttle
+          </button>
+          <button
+            type="button"
+            onClick={() => setScheduleMode('FEST_SPECIAL')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              scheduleMode === 'FEST_SPECIAL' ? 'bg-rose-600 text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Fest Special
+          </button>
+        </div>
+      </div>
 
       {/* 2. Live Bus GPS Tracking Radar & Interactive Map View */}
       <Card className="p-6 border-2 border-primary/20 bg-card space-y-4 shadow-md">
@@ -307,6 +365,26 @@ export const StudentRoutesPage: React.FC = () => {
             >
               {liveMapMode === 'visual' ? 'Satellite View' : 'Map View'}
             </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsRatingModalOpen(true)}
+              leftIcon={<Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />}
+              className="font-bold text-xs"
+            >
+              Rate Pilot
+            </Button>
+
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => navigate('/student/navigation')}
+              leftIcon={<Navigation className="h-3.5 w-3.5" />}
+              className="font-bold shadow-md shadow-primary/20"
+            >
+              Launch Live GPS Turn-by-Turn
+            </Button>
           </div>
         </div>
 
@@ -327,19 +405,20 @@ export const StudentRoutesPage: React.FC = () => {
         </div>
 
         {/* Real Interactive Dynamic Map Canvas */}
-        <div className="relative rounded-2xl overflow-hidden border-2 border-primary/20 bg-slate-900 min-h-[360px] flex flex-col justify-between p-4 text-white shadow-2xl">
-          {/* Dynamic Map Layer */}
-          <iframe
-            title={`VFSTR Transport Live Route Map - ${currentMasterRoute.routeCode}`}
-            width="100%"
-            height="360"
-            className="absolute inset-0 w-full h-full opacity-75 contrast-[110%]"
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapBbox}&layer=${liveMapMode === 'satellite' ? 'hot' : 'mapnik'}&marker=${currentMasterRoute.stops[0].latitude}%2C${currentMasterRoute.stops[0].longitude}`}
-            style={{ border: 0 }}
-          />
+        <RealTimeTransitMap
+          stops={currentMasterRoute.stops}
+          busRegNo={assignedRouteDetails.assignedBusNo}
+          routeNumber={currentMasterRoute.routeCode}
+          routeName={currentMasterRoute.finalTerminal}
+          initialTileLayer={liveMapMode === 'satellite' ? 'satellite' : 'voyager'}
+          heightClassName="h-[440px]"
+          showControls={true}
+        />
 
+        {/* Dynamic Route Stops Timeline Card */}
+        <div className="rounded-2xl overflow-hidden border border-border bg-slate-950 p-4 text-white space-y-4 shadow-xl">
           {/* Dynamic Map Overlay Header */}
-          <div className="relative z-10 flex items-center justify-between bg-slate-950/85 backdrop-blur-md p-3 rounded-xl border border-white/10 shadow-lg">
+          <div className="flex items-center justify-between bg-slate-900/90 backdrop-blur-md p-3 rounded-xl border border-white/10 shadow-lg">
             <div className="flex items-center gap-2 text-xs">
               <MapPin className="h-4 w-4 text-emerald-400 animate-bounce shrink-0" />
               <span className="truncate">
@@ -643,6 +722,15 @@ export const StudentRoutesPage: React.FC = () => {
           ))}
         </div>
       </Card>
+
+      {/* Driver & Commute Experience Rating Modal */}
+      <DriverRatingModal
+        isOpen={isRatingModalOpen}
+        onClose={() => setIsRatingModalOpen(false)}
+        driverName={assignedRouteDetails.driverName}
+        routeCode={assignedRouteDetails.routeId}
+        busRegNo={assignedRouteDetails.assignedBusNo}
+      />
     </PageLayout>
   );
 };

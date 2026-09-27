@@ -14,6 +14,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/Alert';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
+import { RequestService } from '@/services/RequestService';
 import {
   Bus,
   Calendar,
@@ -81,22 +82,27 @@ export const RenewPassPage: React.FC = () => {
     setShowConfirmModal(true);
   };
 
-  const handleConfirmRenewal = () => {
+  const handleConfirmRenewal = async () => {
     setShowConfirmModal(false);
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      const generatedRef = `REN-2027-${Math.floor(1000 + Math.random() * 9000)}`;
-      setRenewalRef(generatedRef);
-      setIsSuccess(true);
-      toast.success('Renewal Request Submitted', `Renewal request ${generatedRef} registered successfully.`);
-    }, 1200);
-  };
+    try {
+      const res = await RequestService.createTransportRequest({
+        studentId: studentProfile.regNo,
+        requestType: 'bus_pass_renewal',
+        reason: 'Annual bus pass renewal for Academic Year 2027-2028',
+        pickupPoint: currentPass.assignedStop,
+      });
 
-  const triggerMockError = () => {
-    setRenewalError('Annual renewal window for Route #14 requires fee clearance verification from Accounts Cell.');
-    toast.error('Renewal Error', 'Temporary clearance error simulated.');
+      const ref = res.refNumber;
+      setRenewalRef(ref);
+      setIsSuccess(true);
+      toast.success('Renewal Request Submitted', `Renewal request ${ref} registered successfully.`);
+    } catch {
+      toast.error('Renewal Error', 'Failed to register annual pass renewal.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -106,13 +112,6 @@ export const RenewPassPage: React.FC = () => {
         title="Bus Pass Annual Renewal"
         subtitle="Renew your transport pass for Academic Year 2027-2028"
         badge={<Badge variant="success" dot>Eligibility Verified</Badge>}
-        actions={
-          !isSuccess && import.meta.env.DEV ? (
-            <Button variant="outline" size="sm" onClick={triggerMockError}>
-              Simulate Error State
-            </Button>
-          ) : undefined
-        }
       />
 
       {/* Simulated Error Alert */}

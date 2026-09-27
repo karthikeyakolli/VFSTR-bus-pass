@@ -1,7 +1,7 @@
 import { RouteObject } from 'react-router-dom';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { PublicRoute } from './PublicRoute';
-import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage } from '@/pages';
+import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage } from '@/pages/auth';
 
 export const authRoutes: RouteObject = {
   element: <PublicRoute />,

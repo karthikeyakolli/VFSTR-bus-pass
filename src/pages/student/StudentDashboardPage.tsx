@@ -10,6 +10,7 @@ import { ActivityTimeline } from '@/components/ui';
 import { useUser } from '@/hooks/useUser';
 import { PageLayout } from '@/layouts/components/PageLayout';
 import { EmergencySosWidget } from '@/components/ui/EmergencySosWidget';
+import { LiveBusRadar } from '@/features/tracking/components/LiveBusRadar';
 import {
   Bus,
   Ticket,
@@ -29,11 +30,21 @@ import {
   Building,
   ExternalLink,
 } from 'lucide-react';
+import { AttendanceService, BoardingAttendanceRecord } from '@/services/AttendanceService';
 
 export const StudentDashboardPage: React.FC = () => {
   const { studentProfile } = useUser();
   const navigate = useNavigate();
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [liveBoarding, setLiveBoarding] = useState<BoardingAttendanceRecord | null>(null);
+
+  React.useEffect(() => {
+    const studentRoll = studentProfile?.regNo || '211FA04001';
+    const unsubscribe = AttendanceService.subscribeToStudentBoarding(studentRoll, (rec) => {
+      setLiveBoarding(rec);
+    });
+    return () => unsubscribe();
+  }, [studentProfile?.regNo]);
 
   const mockPassDetails = {
     passNumber: 'VFSTR-2026-R14-04001',
@@ -121,7 +132,54 @@ export const StudentDashboardPage: React.FC = () => {
         busRegNo={mockPassDetails.busRegNo}
         routeName={`${mockPassDetails.routeNumber} - ${mockPassDetails.routeName}`}
         driverPhone={mockPassDetails.driverPhone}
+        studentName={studentProfile.name}
+        regNo={studentProfile.regNo}
       />
+
+      {/* Live Boarding Attendance Banner */}
+      {liveBoarding && (
+        <Card className="p-4 bg-emerald-500/10 border-2 border-emerald-500/40 rounded-2xl shadow-md animate-fadeIn">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="relative flex h-3 w-3 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-black text-sm text-foreground">
+                    Boarding Checked-In • Safe Journey Active
+                  </h3>
+                  <Badge className="bg-emerald-600 text-white font-mono text-[10px] px-2 py-0">
+                    {liveBoarding.boardedAtTime}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Boarded bus <strong className="text-foreground">{liveBoarding.busRegNo}</strong> ({liveBoarding.routeNumber}) at {liveBoarding.stopName} • Allocated: <span className="font-semibold text-primary">{liveBoarding.seatNumber}</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link to="/student/navigation">
+                <Button size="sm" variant="outline" className="text-xs h-8 border-emerald-500/50 text-emerald-600 dark:text-emerald-400">
+                  Track Ride GPS ↗
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Live GPS Telemetry Radar & Stop ETA */}
+      {studentProfile.isTransportUser && (
+        <LiveBusRadar
+          routeNumber={mockPassDetails.routeNumber}
+          routeName={mockPassDetails.routeName}
+          busRegNo={mockPassDetails.busRegNo}
+          driverName="K. Venkateswarlu"
+          studentPickupStop={studentProfile.pickupPoint || 'Budampadu Junction'}
+        />
+      )}
 
       {/* 2. Top Information Grid */}
       {studentProfile.isTransportUser ? (

@@ -1,6 +1,5 @@
 export * from './AuthService';
 export * from './StudentService';
-export * from './StudentImportService';
 export * from './TransportService';
 export * from './BusPassService';
 export * from './RequestService';
@@ -9,7 +8,8 @@ export * from './FeeService';
 export * from './RouteService';
 export * from './NoticeService';
 export * from './SupportService';
-export * from './ProfileService';
 export * from './StorageService';
 export * from './ErrorHandlingService';
 export * from './AuditService';
+export * from './AdvancedBackendService';
+export * from './FacultyService';

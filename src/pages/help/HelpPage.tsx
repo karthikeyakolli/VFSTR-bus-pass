@@ -8,6 +8,8 @@ import { Select } from '@/components/ui/Select';
 import { Dialog } from '@/components/ui/Dialog';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/hooks/useToast';
+import { useUser } from '@/hooks/useUser';
+import { SupportService } from '@/services/SupportService';
 import {
   HelpCircle,
   Search,
@@ -142,7 +144,9 @@ export const HelpPage: React.FC = () => {
     return true;
   });
 
-  const handleTicketSubmit = (e: React.FormEvent) => {
+  const { studentProfile } = useUser();
+
+  const handleTicketSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!ticketSubject.trim() || !ticketDescription.trim()) {
       toast.error('Validation Error', 'Please fill in both the subject and issue description.');
@@ -150,24 +154,32 @@ export const HelpPage: React.FC = () => {
     }
 
     setIsSubmittingTicket(true);
-    setTimeout(() => {
-      setIsSubmittingTicket(false);
+    try {
+      const res = await SupportService.createSupportTicket(
+        studentProfile?.regNo || 'STUDENT',
+        ticketSubject,
+        ticketDescription,
+        ticketCategory
+      );
+
       setShowTicketModal(false);
-      const ticketRef = `TKT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      const ticketRef = res.data?.ticketId || `TKT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
       setTicketSubject('');
       setTicketDescription('');
       toast.success('Ticket Submitted', `Support ticket ${ticketRef} created. Transport Cell will respond within 24 hours.`);
-    }, 1000);
+    } catch {
+      toast.error('Submission Error', 'Failed to record support ticket.');
+    } finally {
+      setIsSubmittingTicket(false);
+    }
   };
 
   const handleFeedbackSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmittingFeedback(true);
-    setTimeout(() => {
-      setIsSubmittingFeedback(false);
-      setFeedbackComment('');
-      toast.success('Feedback Received', 'Thank you for rating VFSTR Transport Services!');
-    }, 800);
+    setIsSubmittingFeedback(false);
+    setFeedbackComment('');
+    toast.success('Feedback Received', 'Thank you for rating VFSTR Transport Services!');
   };
 
   return (

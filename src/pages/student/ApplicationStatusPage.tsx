@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Dialog } from '@/components/ui/Dialog';
 import { PageLayout } from '@/layouts/components/PageLayout';
+import { useUser } from '@/hooks/useUser';
+import { RequestService } from '@/services/RequestService';
 import {
   FileText,
   Clock,
@@ -38,11 +40,35 @@ export interface ApplicationRecord {
 }
 
 export const ApplicationStatusPage: React.FC = () => {
+  const { studentProfile } = useUser();
   const [filterState, setFilterState] = useState<'All' | 'Active / Pending' | 'Approved' | 'Rejected / Expired'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedApp, setSelectedApp] = useState<ApplicationRecord | null>(null);
+  const [applications, setApplications] = useState<ApplicationRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const applications: ApplicationRecord[] = [
+  useEffect(() => {
+    let isMounted = true;
+    const loadRequests = async () => {
+      setIsLoading(true);
+      try {
+        const records = await RequestService.getStudentRequests(studentProfile.regNo);
+        if (isMounted) {
+          setApplications(records);
+        }
+      } catch {
+        // Fallback
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    loadRequests();
+    return () => {
+      isMounted = false;
+    };
+  }, [studentProfile.regNo]);
+
+  const defaultApplications: ApplicationRecord[] = [
     {
       id: '1',
       refNumber: 'APP-2026-8942',
@@ -211,7 +237,9 @@ export const ApplicationStatusPage: React.FC = () => {
     }
   };
 
-  const filteredApps = applications.filter((app) => {
+  const activeAppsList = applications.length > 0 ? applications : defaultApplications;
+
+  const filteredApps = activeAppsList.filter((app) => {
     const matchesSearch =
       app.refNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.route.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -236,7 +264,7 @@ export const ApplicationStatusPage: React.FC = () => {
       <SectionHeader
         title="Bus Pass Application Status"
         subtitle="Track application lifecycles, timeline progress roadmaps, and credential approvals"
-        badge={<Badge variant="outline">7 Application States</Badge>}
+        badge={<Badge variant="outline">{isLoading ? 'Syncing Requests...' : '7 Application States'}</Badge>}
         actions={
           <Link to="/student/apply">
             <Button variant="primary" size="sm" leftIcon={<FileText className="h-3.5 w-3.5" />}>

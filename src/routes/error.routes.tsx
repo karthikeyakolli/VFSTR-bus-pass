@@ -1,6 +1,6 @@
 import { RouteObject } from 'react-router-dom';
 import { PublicLayout } from '@/layouts/PublicLayout';
-import { NotFoundPage, UnauthorizedPage, ServerErrorPage } from '@/pages';
+import { NotFoundPage, UnauthorizedPage, ServerErrorPage } from '@/pages/error';
 
 export const errorRoutes: RouteObject[] = [
   {

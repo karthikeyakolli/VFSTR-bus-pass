@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -22,32 +22,55 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  AlertTriangle,
   Building,
+  QrCode,
 } from 'lucide-react';
 
+import { PaymentService } from '@/services/PaymentService';
 import { MOCK_TRANSACTIONS, type PaymentTransaction } from '@/constants/mockData';
+import { UpiPaymentModal } from '@/components/payment/UpiPaymentModal';
 
 export const PaymentHistoryPage: React.FC = () => {
   const { studentProfile } = useUser();
   const toast = useToast();
 
+  const [isUpiModalOpen, setIsUpiModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'amount-desc' | 'amount-asc'>('date-desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<PaymentTransaction | null>(null);
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>(MOCK_TRANSACTIONS);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadPayments = async () => {
+      setIsLoading(true);
+      try {
+        const records = await PaymentService.getPaymentHistory(studentProfile.regNo);
+        if (isMounted && records && records.length > 0) {
+          setTransactions(records);
+        }
+      } catch {
+        // Fallback to initial
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    loadPayments();
+    return () => {
+      isMounted = false;
+    };
+  }, [studentProfile.regNo]);
 
   const itemsPerPage = 5;
 
-  const rawTransactions = MOCK_TRANSACTIONS;
+  const rawTransactions = transactions;
 
   const handleFilterChange = (newStatus: string) => {
-    setIsLoading(true);
     setStatusFilter(newStatus);
     setCurrentPage(1);
-    setTimeout(() => setIsLoading(false), 300);
   };
 
   const handleExportStatement = () => {
@@ -66,7 +89,22 @@ export const PaymentHistoryPage: React.FC = () => {
   };
 
   const handlePrintReceipt = () => {
-    toast.info('Printing Receipt', 'Sending official VFSTR Transport Fee Receipt to printer.');
+    if (selectedReceipt) {
+      downloadOfficialReceiptPdf({
+        receiptNo: selectedReceipt.receiptNo,
+        studentName: studentProfile.name,
+        regNo: studentProfile.regNo,
+        academicYear: selectedReceipt.academicYear,
+        paymentDate: selectedReceipt.paymentDate,
+        paymentMode: selectedReceipt.paymentMode,
+        amount: selectedReceipt.amount,
+        bankRef: selectedReceipt.bankRef,
+        routeAssigned: selectedReceipt.routeAssigned,
+      });
+      toast.success('Official PDF Generated', `Tax invoice & receipt ${selectedReceipt.receiptNo} downloaded.`);
+    } else {
+      window.print();
+    }
   };
 
   // Filter and Sort Logic
@@ -121,27 +159,47 @@ export const PaymentHistoryPage: React.FC = () => {
         subtitle="Official fee receipts, payment clearance records, and transaction logs"
         badge={<Badge variant="outline">Institutional ERP Receipts</Badge>}
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            leftIcon={<Download className="h-3.5 w-3.5" />}
-            onClick={handleExportStatement}
-          >
-            Export Statement (PDF)
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<QrCode className="h-3.5 w-3.5" />}
+              onClick={() => setIsUpiModalOpen(true)}
+            >
+              Pay Bus Fee (UPI)
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              leftIcon={<Download className="h-3.5 w-3.5" />}
+              onClick={handleExportStatement}
+            >
+              Export Statement (PDF)
+            </Button>
+          </div>
         }
       />
 
-      {/* Online Gateway Placeholder & Offline Cash Desk Info Banner */}
+      {/* Online Gateway UPI Desk & Offline Cash Desk Info Banner */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-50/20 dark:bg-amber-950/20 text-xs text-muted-foreground space-y-1">
-          <div className="flex items-center gap-2 font-bold text-foreground">
-            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
-            <span>Online SBI Payment Gateway Integration</span>
+        <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/20 text-xs text-muted-foreground space-y-2 flex flex-col justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 font-bold text-foreground">
+              <QrCode className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span>Instant SBI UPI Payment Gateway</span>
+            </div>
+            <p className="leading-relaxed">
+              Pay your annual transport fee via PhonePe, Google Pay, Paytm, or BHIM. Zero processing fees with instant official PDF receipt generation.
+            </p>
           </div>
-          <p className="leading-relaxed">
-            Direct UPI/NetBanking payment portal integration is currently under scheduled maintenance. Online fee submission will launch in the next release.
-          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsUpiModalOpen(true)}
+            className="border-emerald-500/40 text-emerald-700 dark:text-emerald-300 w-fit text-xs font-bold"
+          >
+            Open UPI QR Desk
+          </Button>
         </div>
 
         <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 text-xs text-muted-foreground space-y-1">
@@ -495,6 +553,33 @@ export const PaymentHistoryPage: React.FC = () => {
           </div>
         </Dialog>
       )}
+
+      {/* Instant UPI Payment Gateway Modal */}
+      <UpiPaymentModal
+        isOpen={isUpiModalOpen}
+        onClose={() => setIsUpiModalOpen(false)}
+        studentName={studentProfile.name}
+        regNo={studentProfile.regNo}
+        amount={29300}
+        assignedRoute="Route #14 - Guntur City Express"
+        purpose="Annual Bus Transport Fee AY 2026-27"
+        onSuccess={(payment) => {
+          setTransactions((prev) => [
+            {
+              id: payment.transactionId,
+              receiptNo: payment.transactionId,
+              paymentDate: payment.date,
+              amount: payment.amount,
+              academicYear: '2026 - 2027',
+              paymentMode: payment.paymentMode,
+              status: 'Verified',
+              bankRef: `UPI-SBI-${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+              routeAssigned: 'Route #14 - Guntur City Express',
+            },
+            ...prev,
+          ]);
+        }}
+      />
     </PageLayout>
   );
 };

@@ -35,6 +35,8 @@ export const TopNav: React.FC<TopNavProps> = ({ onMobileMenuToggle }) => {
       if (path === '/student/apply') items.push({ label: 'Apply' });
       else if (path === '/student/renew') items.push({ label: 'Renew' });
       else if (path === '/student/pass') items.push({ label: 'Bus Pass' });
+      else if (path === '/student/booking') items.push({ label: 'Book Seat' });
+      else if (path === '/student/navigation') items.push({ label: 'Live GPS' });
       else if (path === '/student/payments') items.push({ label: 'Payments' });
       else if (path === '/student/routes') items.push({ label: 'Routes & Fees' });
       else if (path === '/student/notifications') items.push({ label: 'Notices' });
@@ -48,15 +50,15 @@ export const TopNav: React.FC<TopNavProps> = ({ onMobileMenuToggle }) => {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-card/90 backdrop-blur-md px-4 sm:px-6 shadow-xs transition-colors">
+      <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-card/90 backdrop-blur-md px-3 sm:px-6 shadow-xs transition-colors">
         {/* Left: Mobile Trigger & Breadcrumbs */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {onMobileMenuToggle && (
             <Button
               variant="ghost"
               size="icon"
               onClick={onMobileMenuToggle}
-              className="lg:hidden text-muted-foreground hover:text-foreground"
+              className="lg:hidden text-muted-foreground hover:text-foreground h-9 w-9"
               aria-label="Open navigation menu"
             >
               <Menu className="h-5 w-5" />
@@ -70,16 +72,17 @@ export const TopNav: React.FC<TopNavProps> = ({ onMobileMenuToggle }) => {
         </div>
 
         {/* Center: Command Palette Trigger Button */}
-        <div className="flex-1 max-w-sm mx-4">
+        <div className="flex-1 max-w-[200px] sm:max-w-sm mx-2 sm:mx-4">
           <button
             onClick={() => setCommandPaletteOpen(true)}
-            className="flex h-9 w-full items-center justify-between rounded-xl border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/40 hover:bg-accent/40 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-2xs"
+            className="flex h-9 w-full items-center justify-between rounded-xl border border-border bg-muted/50 px-2.5 sm:px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/40 hover:bg-accent/40 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-2xs"
           >
-            <div className="flex items-center gap-2">
-              <Search className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>Quick search routes, passes, actions...</span>
+            <div className="flex items-center gap-2 truncate">
+              <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className="hidden md:inline truncate">Quick search routes, passes, actions...</span>
+              <span className="inline md:hidden text-[11px] truncate">Search...</span>
             </div>
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-card px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground shadow-2xs">
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-card px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground shadow-2xs shrink-0">
               <Command className="h-2.5 w-2.5" /> K
             </kbd>
           </button>

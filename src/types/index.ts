@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type UserRole = 'student' | 'admin' | 'superadmin';
+export type UserRole = 'student' | 'faculty' | 'driver' | 'admin' | 'superadmin';
 
 export type TransportEligibility = 'transport_user' | 'non_transport_user';
 
@@ -257,6 +257,7 @@ export interface StudentProfile extends User {
   address?: string;
   emergencyContactName?: string;
   passStatus?: BusPassStatus;
+  seatNumber?: number | string;
 }
 
 export type BusPassStatus = 'pending' | 'approved' | 'rejected' | 'expired' | 'active';
@@ -394,4 +395,58 @@ export interface SidebarItem {
   icon: React.ReactNode;
   badge?: string;
   children?: SidebarSubItem[];
+}
+
+export interface FacultyProfile {
+  id: string;
+  employeeId: string;
+  fullName: string;
+  department: string;
+  designation: string;
+  email: string;
+  phoneNumber: string;
+  cabinLocation?: string;
+  bloodGroup?: string;
+  payrollDeductionEnabled: boolean;
+  assignedRouteId?: string;
+  assignedStopId?: string;
+  passStatus: 'active' | 'pending' | 'expired';
+}
+
+export type SeatCategory = 'seat' | 'standing';
+export type SeatState = 'available' | 'selected' | 'booked' | 'faculty_reserved';
+
+export interface BusSeat {
+  seatNumber: number; // 1 to 45
+  category: 'seat';
+  state: SeatState;
+  bookedBy?: string;
+  bookedByRole?: UserRole;
+  isWindow?: boolean;
+}
+
+export interface StandingSlot {
+  tokenNumber: number; // 1 to 15
+  category: 'standing';
+  state: 'available' | 'booked';
+  bookedBy?: string;
+  bookedByRole?: UserRole;
+}
+
+export interface BusTripBooking {
+  id: string;
+  tripId: string;
+  userId: string;
+  userName: string;
+  userRole: UserRole;
+  userIdentifier: string; // Roll number or Employee ID
+  routeNumber: string;
+  routeName: string;
+  bookingType: SeatCategory;
+  seatNumber?: number; // 1 to 45
+  standingTokenNumber?: number; // 1 to 15
+  travelDate: string;
+  status: 'confirmed' | 'cancelled' | 'boarded';
+  bookingTimestamp: string;
+  fareAmount: number;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -12,6 +12,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useToast } from '@/hooks/useToast';
 import { NotificationItem } from '@/types';
 import { PageLayout } from '@/layouts/components/PageLayout';
+import { NoticeService } from '@/services/NoticeService';
 import {
   Bell,
   CheckCheck,
@@ -35,6 +36,67 @@ export interface DetailedNotificationItem extends NotificationItem {
   sender: string;
 }
 
+const MOCK_DETAILED_NOTICES: DetailedNotificationItem[] = [
+  {
+    id: '1',
+    title: 'Digital Bus Pass Issued for Route #14',
+    message: 'Your annual bus pass for Route #14 (Guntur City Express) has been approved by the Transport Cell.',
+    fullMessage: 'Your annual bus pass for Route #14 (Guntur City Express) has been approved by Dr. M. R. K. Murthy. You can now present your digital pass or QR code directly on your smartphone to the bus conductor upon boarding.',
+    time: '10 mins ago',
+    read: false,
+    type: 'pass',
+    category: 'Application Updates',
+    sender: 'VFSTR Transport Cell',
+    actionUrl: '/student/pass',
+  },
+  {
+    id: '2',
+    title: 'Morning Pickup Schedule Adjustment',
+    message: 'Morning pickup time for Guntur City Route #8 moved 5 mins earlier starting next Monday.',
+    fullMessage: 'Due to road widening work on Guntur-Vadlamudi Highway, the morning pickup time for Route #8 (Collectorate Stop) has been shifted 5 minutes earlier to 07:05 AM starting Monday.',
+    time: '1 hour ago',
+    read: false,
+    type: 'route',
+    category: 'Transport Notices',
+    sender: 'Traffic Operations Office',
+  },
+  {
+    id: '3',
+    title: 'Annual Fee Payment Verified (₹18,500)',
+    message: 'Online transaction ₹18,500 successfully verified by VFSTR Accounts Desk.',
+    fullMessage: 'Payment transaction ₹18,500 for Academic Year 2026-2027 has been verified by the VFSTR Cash Desk. Receipt PDF is available for download in your Payments section.',
+    time: 'Yesterday, 04:30 PM',
+    read: true,
+    type: 'pass',
+    category: 'Payment Updates',
+    sender: 'VFSTR Accounts Cell',
+    actionUrl: '/student/payments',
+  },
+  {
+    id: '4',
+    title: 'Early Bird Renewal Window Open for AY 2027-2028',
+    message: 'Annual transport renewal window is now open for all senior students.',
+    fullMessage: 'Beat the rush! The early bird renewal window for Academic Year 2027-2028 is now open. Submit your renewal request early to ensure guaranteed seat reservation on your preferred route.',
+    time: '2 days ago',
+    read: true,
+    type: 'alert',
+    category: 'Renewals',
+    sender: 'Transport Cell Admin',
+    actionUrl: '/student/renew',
+  },
+  {
+    id: '5',
+    title: 'Mid-Term Exam Special Bus Timings',
+    message: 'Special afternoon buses will depart campus at 01:30 PM & 05:00 PM during exam week.',
+    fullMessage: 'In view of mid-term examinations, special afternoon return buses will depart Vadlamudi campus at 01:30 PM in addition to the regular 05:00 PM evening schedule.',
+    time: '3 days ago',
+    read: true,
+    type: 'alert',
+    category: 'Announcements',
+    sender: 'University Transport Committee',
+  },
+];
+
 export const NotificationsPage: React.FC = () => {
   const { unreadCount, markAllAsRead, markAsRead } = useNotifications();
   const toast = useToast();
@@ -44,74 +106,56 @@ export const NotificationsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<DetailedNotificationItem | null>(null);
+  const [notices, setNotices] = useState<DetailedNotificationItem[]>(MOCK_DETAILED_NOTICES);
 
-  const mockDetailedNotifications: DetailedNotificationItem[] = [
-    {
-      id: '1',
-      title: 'Digital Bus Pass Issued for Route #14',
-      message: 'Your annual bus pass for Route #14 (Guntur City Express) has been approved by the Transport Cell.',
-      fullMessage: 'Your annual bus pass for Route #14 (Guntur City Express) has been approved by Dr. M. R. K. Murthy. You can now present your digital pass or QR code directly on your smartphone to the bus conductor upon boarding.',
-      time: '10 mins ago',
-      read: false,
-      type: 'pass',
-      category: 'Application Updates',
-      sender: 'VFSTR Transport Cell',
-      actionUrl: '/student/pass',
-    },
-    {
-      id: '2',
-      title: 'Morning Pickup Schedule Adjustment',
-      message: 'Morning pickup time for Guntur City Route #8 moved 5 mins earlier starting next Monday.',
-      fullMessage: 'Due to road widening work on Guntur-Vadlamudi Highway, the morning pickup time for Route #8 (Collectorate Stop) has been shifted 5 minutes earlier to 07:05 AM starting Monday.',
-      time: '1 hour ago',
-      read: false,
-      type: 'route',
-      category: 'Transport Notices',
-      sender: 'Traffic Operations Office',
-    },
-    {
-      id: '3',
-      title: 'Annual Fee Payment Verified (₹18,500)',
-      message: 'Online transaction ₹18,500 successfully verified by VFSTR Accounts Desk.',
-      fullMessage: 'Payment transaction ₹18,500 for Academic Year 2026-2027 has been verified by the VFSTR Cash Desk. Receipt PDF is available for download in your Payments section.',
-      time: 'Yesterday, 04:30 PM',
-      read: true,
-      type: 'pass',
-      category: 'Payment Updates',
-      sender: 'VFSTR Accounts Cell',
-      actionUrl: '/student/payments',
-    },
-    {
-      id: '4',
-      title: 'Early Bird Renewal Window Open for AY 2027-2028',
-      message: 'Annual transport renewal window is now open for all senior students.',
-      fullMessage: 'Beat the rush! The early bird renewal window for Academic Year 2027-2028 is now open. Submit your renewal request early to ensure guaranteed seat reservation on your preferred route.',
-      time: '2 days ago',
-      read: true,
-      type: 'alert',
-      category: 'Renewals',
-      sender: 'Transport Cell Admin',
-      actionUrl: '/student/renew',
-    },
-    {
-      id: '5',
-      title: 'Mid-Term Exam Special Bus Timings',
-      message: 'Special afternoon buses will depart campus at 01:30 PM & 05:00 PM during exam week.',
-      fullMessage: 'In view of mid-term examinations, special afternoon return buses will depart Vadlamudi campus at 01:30 PM in addition to the regular 05:00 PM evening schedule.',
-      time: '3 days ago',
-      read: true,
-      type: 'alert',
-      category: 'Announcements',
-      sender: 'University Transport Committee',
-    },
-  ];
+  const [pushPermission, setPushPermission] = useState<string>(
+    typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default'
+  );
+
+  const handleRequestPushPermission = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      toast.warning('Web Push Unsupported', 'This browser does not support the Web Notifications API.');
+      return;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      setPushPermission(permission);
+      if (permission === 'granted') {
+        new Notification('VFSTR Transit Proximity Alert (Active)', {
+          body: 'Geofence activated! You will receive alerts when your morning bus is 1km away from your stop.',
+        });
+        toast.success('Web Push Alerts Active', 'Bus arrival geofence alerts enabled successfully.');
+      } else {
+        toast.warning('Permission Denied', 'Browser notifications were denied or dismissed.');
+      }
+    } catch {
+      toast.error('Error', 'Unable to register push notification permission.');
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadNotices = async () => {
+      setIsLoading(true);
+      try {
+        const data = await NoticeService.getCampusNotices(activeCategory);
+        if (isMounted) {
+          setNotices(data && data.length > 0 ? data : MOCK_DETAILED_NOTICES);
+        }
+      } catch {
+        if (isMounted) setNotices(MOCK_DETAILED_NOTICES);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    loadNotices();
+    return () => {
+      isMounted = false;
+    };
+  }, [activeCategory]);
 
   const handleCategoryChange = (category: NotificationCategory) => {
-    setIsLoading(true);
     setActiveCategory(category);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 400);
   };
 
   const handleViewNotification = (item: DetailedNotificationItem) => {
@@ -124,7 +168,9 @@ export const NotificationsPage: React.FC = () => {
     toast.success('Notifications Updated', 'All notifications marked as read.');
   };
 
-  const filteredNotifications = mockDetailedNotifications.filter((n) => {
+  const activeNoticesList: DetailedNotificationItem[] = notices.length > 0 ? notices : MOCK_DETAILED_NOTICES;
+
+  const filteredNotifications = activeNoticesList.filter((n: DetailedNotificationItem) => {
     const matchesCategory = activeCategory === 'All' || n.category === activeCategory;
     const matchesSearch =
       n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -177,6 +223,38 @@ export const NotificationsPage: React.FC = () => {
           </div>
         }
       />
+
+      {/* Web Push Geofence Notification Status Banner */}
+      <div className="p-4 rounded-2xl border border-primary/30 bg-primary/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
+            <Bell className="h-5 w-5 animate-pulse" />
+          </div>
+          <div className="space-y-0.5 text-xs">
+            <div className="font-bold text-foreground flex items-center gap-2">
+              <span>Bus Proximity 1KM Geofence Alerts</span>
+              {pushPermission === 'granted' ? (
+                <Badge variant="success" className="text-[10px]">Active</Badge>
+              ) : (
+                <Badge variant="secondary" className="text-[10px]">Disabled</Badge>
+              )}
+            </div>
+            <p className="text-muted-foreground">
+              {pushPermission === 'granted'
+                ? 'Browser push active. You will receive an instant sound & screen alert when your bus is within 1km.'
+                : 'Turn on native browser alerts to be notified the moment Route #14 departs or approaches your stop.'}
+            </p>
+          </div>
+        </div>
+        <Button
+          variant={pushPermission === 'granted' ? 'outline' : 'primary'}
+          size="sm"
+          onClick={handleRequestPushPermission}
+          className="text-xs font-bold shrink-0 self-start sm:self-auto"
+        >
+          {pushPermission === 'granted' ? 'Send Test Notification' : 'Enable Web Push Alerts'}
+        </Button>
+      </div>
 
       {/* Pinned Important Notices */}
       <Card className="p-5 border-2 border-primary/20 bg-card space-y-3">

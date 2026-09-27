@@ -6,7 +6,7 @@ import { Footer } from './components/Footer';
 import { Container } from './components/Container';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, CreditCard, Route, FileText, Bell, User } from 'lucide-react';
+import { LayoutDashboard, CreditCard, Route, FileText, Bell, User, Armchair, Navigation, HelpCircle } from 'lucide-react';
 
 export const StudentLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,12 +18,15 @@ export const StudentLayout: React.FC = () => {
   const studentNavItems: SidebarItem[] = [
     { label: 'Home', href: '/student', icon: <LayoutDashboard className="h-4 w-4" /> },
     { label: 'Bus Pass', href: '/student/pass', icon: <FileText className="h-4 w-4" /> },
+    { label: 'Apply Bus Pass', href: '/student/apply', icon: <Armchair className="h-4 w-4" />, badge: 'New' },
+    { label: 'Book Seat', href: '/student/booking', icon: <Armchair className="h-4 w-4" />, badge: 'Seat Map' },
+    { label: 'Live GPS Navigation', href: '/student/navigation', icon: <Navigation className="h-4 w-4" />, badge: 'Live' },
     { label: 'Routes & Stops', href: '/student/routes', icon: <Route className="h-4 w-4" /> },
     { label: 'Applications', href: '/student/applications', icon: <FileText className="h-4 w-4" /> },
     { label: 'Fee & Payments', href: '/student/payments', icon: <CreditCard className="h-4 w-4" /> },
     { label: 'Notices', href: '/student/notifications', icon: <Bell className="h-4 w-4" /> },
     { label: 'Profile', href: '/student/profile', icon: <User className="h-4 w-4" /> },
-    { label: 'Support', href: '/help', icon: <User className="h-4 w-4" /> },
+    { label: 'Support & FAQs', href: '/help', icon: <HelpCircle className="h-4 w-4" /> },
   ];
 
   const handleLogout = () => {

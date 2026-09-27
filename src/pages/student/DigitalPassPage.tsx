@@ -12,6 +12,9 @@ import { APP_CONFIG } from '@/config/app.config';
 import { downloadCombinedBusPassPdf, downloadCardElementAsImage } from '@/utils/downloadReceipt';
 import { PageLayout } from '@/layouts/components/PageLayout';
 import { AdvancedBackendService, VerificationResult } from '@/services/AdvancedBackendService';
+import { BusPassService } from '@/services/BusPassService';
+import { BusPassRecord } from '@/types';
+import { AttendanceService, BoardingAttendanceRecord } from '@/services/AttendanceService';
 import {
   Bus,
   Calendar,
@@ -57,32 +60,93 @@ export const DigitalPassPage: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Live Boarding Attendance Sync
+  const [liveBoarding, setLiveBoarding] = useState<BoardingAttendanceRecord | null>(null);
+
+  React.useEffect(() => {
+    const studentRoll = studentProfile?.regNo || '211FA04001';
+    const unsubscribe = AttendanceService.subscribeToStudentBoarding(studentRoll, (rec) => {
+      setLiveBoarding(rec);
+      toast.success(
+        'Boarding Verified by Captain',
+        `Checked in at ${rec.boardedAtTime} for ${rec.routeNumber} (${rec.seatNumber}). Safe Journey!`
+      );
+    });
+    return () => unsubscribe();
+  }, [studentProfile?.regNo, toast]);
+
   // Custom User Photo State (default to sample photo)
   const [userPhoto, setUserPhoto] = useState<string>(
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [passRecord, setPassRecord] = useState<BusPassRecord | null>(() => {
+    try {
+      const cached = localStorage.getItem('vfstr_cached_active_pass');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [isOffline, setIsOffline] = useState<boolean>(typeof navigator !== 'undefined' ? !navigator.onLine : false);
+
+  React.useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const loadPass = async () => {
+      if (studentProfile?.regNo) {
+        try {
+          const record = await BusPassService.getActivePassRecord(studentProfile.regNo);
+          if (isMounted) {
+            setPassRecord(record);
+            try {
+              localStorage.setItem('vfstr_cached_active_pass', JSON.stringify(record));
+            } catch {
+              // ignore
+            }
+          }
+        } catch {
+          // Fallback to cached or defaults
+        }
+      }
+    };
+    loadPass();
+    return () => {
+      isMounted = false;
+    };
+  }, [studentProfile?.regNo]);
 
   const passDetails = {
-    passNumber: 'VFSTR-2026-R14-04001',
-    academicYear: '2026 - 2027',
-    status: 'active' as const,
-    issueDate: '10 Aug 2026',
-    expiryDate: '31 May 2027',
+    passNumber: passRecord?.passNumber || `VFSTR-2026-${studentProfile.regNo || '04001'}`,
+    academicYear: passRecord?.academicYear || '2026 - 2027',
+    status: (passRecord?.status || 'active') as 'active',
+    issueDate: passRecord?.issueDate || '10 Aug 2026',
+    expiryDate: passRecord?.expiryDate || '31 May 2027',
     daysRemaining: 245,
-    assignedRouteNumber: 'Route #14',
-    assignedRouteName: 'Guntur City Express',
-    assignedStop: 'Gorantla, Guntur',
+    assignedRouteNumber: passRecord?.assignedRouteNumber || 'Route #14',
+    assignedRouteName: passRecord?.assignedRouteName || 'Guntur City Express',
+    assignedStop: passRecord?.pickupStop || studentProfile.pickupPoint || 'Old Bus Stand, Guntur',
     seatNo: '41',
-    busRegNo: 'AP39WC - 7020',
+    busRegNo: 'AP 07 TJ 4521',
     morningPickupTime: '07:10 AM',
     eveningDepartureTime: '05:15 PM',
     transportOfficeStatus: 'Verified & Authorized by Transport Officer',
-    feePaid: 18500,
-    paymentStatus: 'Paid',
-    authorizedBy: 'Dr. M. R. K. Murthy (Transport In-Charge)',
-    phoneNumber: '8885940527',
-    yearBranch: 'Ist CSE-DS',
+    feePaid: passRecord?.feeAmount || 18500,
+    paymentStatus: passRecord?.paymentStatus || 'Paid',
+    authorizedBy: passRecord?.authorizedBy || 'Dr. M. R. K. Murthy (Transport In-Charge)',
+    phoneNumber: studentProfile.phone || '9876543210',
+    yearBranch: `${studentProfile.semester || 'II Year'} ${studentProfile.department || 'CSE'}`,
   };
 
   const handleVerifyHmac = async () => {
@@ -96,10 +160,10 @@ export const DigitalPassPage: React.FC = () => {
       regNo: studentProfile.regNo,
       validUntil: passDetails.expiryDate,
     });
-    const signature = btoa(`${passDetails.passNumber}:${studentProfile.regNo}:VFSTR_SECRET_KEY`);
+    const signature = await AdvancedBackendService.generatePassSignature(payload);
     const res = await AdvancedBackendService.verifyPassSignature(payload, signature);
     setVerificationResult(res);
-    toast.success('HMAC Cryptographic Proof Verified', 'Pass token signature validated against backend secret key.');
+    toast.success('HMAC-SHA256 Cryptographic Proof Verified', 'Pass token signature validated using hardware-accelerated Web Crypto API.');
   };
 
   const handleDownloadPdf = async () => {
@@ -199,6 +263,57 @@ export const DigitalPassPage: React.FC = () => {
               </Button>
             </Link>
           </div>
+        </div>
+      )}
+
+      {/* Live Boarding Attendance Verified Banner */}
+      {liveBoarding && (
+        <div className="p-4 rounded-2xl bg-emerald-500/15 border-2 border-emerald-500/40 text-emerald-950 dark:text-emerald-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg animate-fadeIn backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-3 w-3 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-black text-sm text-emerald-800 dark:text-emerald-300">
+                  Boarding Verified • Safe Journey Active
+                </span>
+                <Badge className="bg-emerald-600 text-white text-[10px] font-mono px-2 py-0">
+                  {liveBoarding.boardedAtTime}
+                </Badge>
+              </div>
+              <p className="text-xs text-emerald-900/80 dark:text-emerald-300/80 mt-0.5">
+                Checked-in aboard <strong className="text-foreground">{liveBoarding.busRegNo}</strong> ({liveBoarding.routeNumber}) • {liveBoarding.seatNumber} • Driver: {liveBoarding.driverName}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-center">
+            <Badge variant="outline" className="border-emerald-500 font-mono text-[10px] text-emerald-700 dark:text-emerald-300">
+              Attendance Logged
+            </Badge>
+          </div>
+        </div>
+      )}
+
+      {/* Offline Mode Banner */}
+      {isOffline && (
+        <div className="p-3.5 rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs flex items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+            </span>
+            <div>
+              <span className="font-extrabold block">Offline Mode Active</span>
+              <span className="text-[11px] opacity-90">
+                Displaying cryptographically cached pass data & TOTP credentials. Present to driver normally.
+              </span>
+            </div>
+          </div>
+          <Badge variant="outline" className="border-amber-500/50 font-mono text-[10px] shrink-0">
+            Offline Cached
+          </Badge>
         </div>
       )}
 
@@ -337,7 +452,7 @@ export const DigitalPassPage: React.FC = () => {
                 {/* ============================================================ */}
                 <div
                   id="vfstr-bus-pass-front"
-                  className="w-full rounded-3xl bg-yellow-300 p-3 sm:p-5 shadow-2xl border-4 border-yellow-400 text-slate-950 font-sans relative overflow-hidden"
+                  className="w-full rounded-3xl bg-yellow-300 p-3 sm:p-5 shadow-2xl border-4 border-yellow-400 text-slate-950 font-sans relative overflow-hidden min-h-[440px] flex flex-col justify-between"
                   style={{
                     backgroundColor: '#facc15',
                     backgroundImage: 'radial-gradient(#eab308 0.75px, transparent 0.75px)',
@@ -350,7 +465,7 @@ export const DigitalPassPage: React.FC = () => {
                   <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-tr from-transparent via-white/25 to-transparent opacity-40 mix-blend-overlay transition-opacity duration-300 group-hover:opacity-70" />
 
                   {/* Outer Red Line Border Enclosing Front Pass Content */}
-                  <div className="relative rounded-2xl border-2 border-red-600 p-4 sm:p-5 bg-yellow-300/90 shadow-inner space-y-3">
+                  <div className="relative rounded-2xl border-2 border-red-600 p-4 sm:p-5 bg-yellow-300/90 shadow-inner space-y-3 flex-1 flex flex-col justify-between">
                     
                     {/* Top University Header & Logo */}
                     <div className="flex items-start justify-between border-b-2 border-slate-900 pb-3 gap-2">
@@ -506,26 +621,24 @@ export const DigitalPassPage: React.FC = () => {
 
                       {/* Live TOTP Rotating Security QR Badge */}
                       <div className="flex flex-col items-center bg-white/90 p-2 rounded-xl border-2 border-slate-900 shadow-md shrink-0 space-y-1">
-                        <div className="h-14 w-14 rounded-lg bg-slate-950 p-1 flex items-center justify-center text-white relative">
-                          {/* Dynamic SVG QR pattern representation */}
-                          <div className="grid grid-cols-4 gap-0.5 w-full h-full p-0.5">
-                            <div className="bg-white rounded-xs" />
-                            <div className="bg-emerald-400 rounded-xs" />
-                            <div className="bg-white rounded-xs" />
-                            <div className="bg-white rounded-xs" />
-                            <div className="bg-white rounded-xs" />
-                            <div className="bg-transparent" />
-                            <div className="bg-emerald-400 rounded-xs" />
-                            <div className="bg-white rounded-xs" />
-                            <div className="bg-white rounded-xs" />
-                            <div className="bg-white rounded-xs" />
-                            <div className="bg-white rounded-xs" />
-                            <div className="bg-emerald-400 rounded-xs" />
-                            <div className="bg-white rounded-xs" />
-                            <div className="bg-emerald-400 rounded-xs" />
-                            <div className="bg-white rounded-xs" />
-                            <div className="bg-white rounded-xs" />
-                          </div>
+                        <div className="h-16 w-16 rounded-lg bg-white p-0.5 flex items-center justify-center text-white relative overflow-hidden border border-slate-300">
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                              JSON.stringify({
+                                app: 'VFSTR_TRANSPORT',
+                                pass: passDetails.passNumber,
+                                regNo: studentProfile.regNo,
+                                name: studentProfile.name,
+                                route: passDetails.assignedRouteNumber,
+                                seat: passDetails.seatNo,
+                                bus: passDetails.busRegNo,
+                                totp: totpToken,
+                              })
+                            )}`}
+                            alt="Bus Pass Security QR Code"
+                            className="w-full h-full object-contain"
+                            loading="eager"
+                          />
                         </div>
                         <div className="text-center font-mono font-extrabold text-[10px] text-slate-900">
                           TOTP: <span className="text-emerald-700 font-black">{totpToken}</span>

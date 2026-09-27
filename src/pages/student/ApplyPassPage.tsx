@@ -14,6 +14,8 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Alert, AlertTitle } from '@/components/ui/Alert';
 import { useUser } from '@/hooks/useUser';
 import { useToast } from '@/hooks/useToast';
+import { RequestService } from '@/services/RequestService';
+import { BusSeatMap } from '@/features/booking/components/BusSeatMap';
 import {
   User,
   GraduationCap,
@@ -36,7 +38,10 @@ import {
   AlertTriangle,
   RotateCcw,
   Check,
+  QrCode,
+  Armchair,
 } from 'lucide-react';
+import { UpiPaymentModal } from '@/components/payment/UpiPaymentModal';
 
 const applicationSchema = z.object({
   // Step 1: Personal Details
@@ -55,7 +60,10 @@ const applicationSchema = z.object({
   landmark: z.string().min(2, 'Nearest Landmark is required'),
   preferredShift: z.string().min(1, 'Preferred departure shift is required'),
 
-  // Step 3: Declaration
+  // Step 3: Seat Selection
+  allocatedSeat: z.string().min(1, 'Please select your bus seat or general transit pass before proceeding'),
+
+  // Step 4: Declaration
   declaration: z.boolean().refine((val) => val === true, {
     message: 'You must accept the transport rules declaration before submitting',
   }),
@@ -64,15 +72,21 @@ const applicationSchema = z.object({
 type ApplicationFormValues = z.infer<typeof applicationSchema>;
 
 export const ApplyPassPage: React.FC = () => {
-  const { studentProfile } = useUser();
+  const { studentProfile, updateStudentProfile } = useUser();
   const toast = useToast();
 
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
+  const draftStorageKey = `vfstr-buspass-draft-${studentProfile.regNo}`;
+
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applicationRef, setApplicationRef] = useState<string | null>(null);
   const [stepError, setStepError] = useState<string | null>(null);
   const [hasSavedDraft, setHasSavedDraft] = useState(false);
+  const [isUpiModalOpen, setIsUpiModalOpen] = useState(false);
+
+  // Seat allocation state (1 person = 1 seat)
+  const [selectedSeat, setSelectedSeat] = useState<string>('Seat #17');
 
   const {
     register,
@@ -80,6 +94,7 @@ export const ApplyPassPage: React.FC = () => {
     trigger,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<ApplicationFormValues>({
     resolver: zodResolver(applicationSchema),
@@ -96,6 +111,7 @@ export const ApplyPassPage: React.FC = () => {
       boardingPoint: 'Old Bus Stand, Guntur',
       landmark: 'Near Municipal High School',
       preferredShift: 'Morning 07:10 AM / Return 05:15 PM',
+      allocatedSeat: 'Seat #17',
       declaration: false,
     },
   });
@@ -104,27 +120,30 @@ export const ApplyPassPage: React.FC = () => {
 
   // Check for saved draft in localStorage
   useEffect(() => {
-    const savedDraft = localStorage.getItem('vfstr-buspass-draft');
+    const savedDraft = localStorage.getItem(draftStorageKey);
     if (savedDraft) {
       setHasSavedDraft(true);
     }
-  }, []);
+  }, [draftStorageKey]);
 
   const handleRestoreDraft = () => {
-    const savedDraft = localStorage.getItem('vfstr-buspass-draft');
+    const savedDraft = localStorage.getItem(draftStorageKey);
     if (savedDraft) {
       try {
         const parsed = JSON.parse(savedDraft);
         reset(parsed);
+        if (parsed.allocatedSeat) {
+          setSelectedSeat(parsed.allocatedSeat);
+        }
         toast.success('Draft Restored', 'Your previously saved application progress has been restored.');
-      } catch (e) {
+      } catch {
         toast.error('Draft Error', 'Could not restore draft data.');
       }
     }
   };
 
   const handleSaveDraft = () => {
-    localStorage.setItem('vfstr-buspass-draft', JSON.stringify(formValues));
+    localStorage.setItem(draftStorageKey, JSON.stringify(formValues));
     setHasSavedDraft(true);
     toast.info('Progress Saved', 'Your application draft has been saved locally. You can resume anytime.');
   };
@@ -132,18 +151,34 @@ export const ApplyPassPage: React.FC = () => {
   const validateCurrentStep = async (step: number): Promise<boolean> => {
     setStepError(null);
     if (step === 1) {
-      const isValid = await trigger(['name', 'regNo', 'department', 'academicYear', 'gender', 'phone', 'email', 'emergencyContact']);
+      const isValid = await trigger([
+        'name',
+        'regNo',
+        'department',
+        'academicYear',
+        'gender',
+        'phone',
+        'email',
+        'emergencyContact',
+      ]);
       if (!isValid) {
-        setStepError('Please correct the errors in Step 1 before proceeding.');
+        setStepError('Please complete all required student personal fields in Step 1.');
         return false;
       }
       return true;
     } else if (step === 2) {
       const isValid = await trigger(['residentialArea', 'boardingPoint', 'landmark', 'preferredShift']);
       if (!isValid) {
-        setStepError('Please correct the errors in Step 2 before proceeding.');
+        setStepError('Please select your preferred boarding point and route in Step 2.');
         return false;
       }
+      return true;
+    } else if (step === 3) {
+      if (!selectedSeat) {
+        setStepError('Please select exactly 1 seat or choose a general transit pass to continue.');
+        return false;
+      }
+      setValue('allocatedSeat', selectedSeat);
       return true;
     }
     return true;
@@ -153,8 +188,8 @@ export const ApplyPassPage: React.FC = () => {
     const isValid = await validateCurrentStep(currentStep);
     if (isValid) {
       setCompletedSteps((prev) => Array.from(new Set([...prev, currentStep])));
-      if (currentStep < 3) {
-        setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3);
+      if (currentStep < 4) {
+        setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3 | 4 | 5);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
@@ -162,20 +197,19 @@ export const ApplyPassPage: React.FC = () => {
 
   const handlePrevStep = () => {
     setStepError(null);
-    if (currentStep > 1 && currentStep <= 3) {
-      setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3);
+    if (currentStep > 1 && currentStep <= 4) {
+      setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3 | 4 | 5);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const handleJumpToStep = async (targetStep: 1 | 2 | 3) => {
+  const handleJumpToStep = async (targetStep: 1 | 2 | 3 | 4) => {
     if (targetStep === currentStep) return;
     if (targetStep < currentStep || completedSteps.includes(targetStep)) {
       setStepError(null);
       setCurrentStep(targetStep);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Validate current step before allowing forward jump
       const isValid = await validateCurrentStep(currentStep);
       if (isValid) {
         setCompletedSteps((prev) => Array.from(new Set([...prev, currentStep])));
@@ -185,25 +219,67 @@ export const ApplyPassPage: React.FC = () => {
     }
   };
 
-  const onSubmit = (_data: ApplicationFormValues) => {
+  // Called when user selects a seat inside BusSeatMap in Step 3
+  const handleSeatSelected = (booking: {
+    category: 'seat' | 'standing';
+    seatNumbers?: number[];
+    isGeneralBooking?: boolean;
+  }) => {
+    if (booking.isGeneralBooking) {
+      const label = 'General Transit Pass';
+      setSelectedSeat(label);
+      setValue('allocatedSeat', label);
+      toast.success('Pass Selected', 'General Transit Pass (Standing/Relief Shuttle) selected.');
+    } else if (booking.seatNumbers && booking.seatNumbers.length > 0) {
+      const singleSeatNum = booking.seatNumbers[0];
+      const label = `Seat #${singleSeatNum}`;
+      setSelectedSeat(label);
+      setValue('allocatedSeat', label);
+      toast.success('Seat Selected', `Seat #${singleSeatNum} reserved exclusively for you.`);
+    }
+  };
+
+  const onSubmit = async (data: ApplicationFormValues) => {
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      const res = await RequestService.createTransportRequest({
+        studentId: studentProfile.regNo,
+        requestType: 'new_enrollment',
+        reason: `Annual Bus Transport Application AY 2026-27 (${data.allocatedSeat})`,
+        pickupPoint: data.boardingPoint,
+      });
+
+      const ref = res.refNumber;
+      setApplicationRef(ref);
+      setCompletedSteps([1, 2, 3, 4, 5]);
+      setCurrentStep(5);
+
+      // Cleanly update profile state via context
+      updateStudentProfile({
+        isTransportUser: true,
+        transportStatus: 'active',
+        pickupPoint: data.boardingPoint,
+        seatNumber: data.allocatedSeat,
+      });
+
+      localStorage.removeItem(draftStorageKey);
+      toast.success(
+        'Application Submitted',
+        `Reference ${ref} registered with ${data.allocatedSeat} reserved. Digital pass generated.`
+      );
+    } catch {
+      toast.error('Submission Failed', 'An error occurred while submitting your transport application.');
+    } finally {
       setIsSubmitting(false);
-      const generatedRef = `APP-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-      setApplicationRef(generatedRef);
-      setCompletedSteps([1, 2, 3, 4]);
-      setCurrentStep(4);
-      studentProfile.isTransportUser = true;
-      localStorage.removeItem('vfstr-buspass-draft');
-      toast.success('Application & Payment Cleared', `Application reference ${generatedRef} submitted and digital pass unlocked.`);
-    }, 1200);
+    }
   };
 
   const steps = [
-    { number: 1, title: 'Personal Details', subtitle: 'Student info' },
-    { number: 2, title: 'Transport Info', subtitle: 'Route & stop' },
-    { number: 3, title: 'Review Application', subtitle: 'Final check' },
-    { number: 4, title: 'Confirmation', subtitle: 'Status & ref' },
+    { number: 1, title: 'Personal Info', subtitle: 'Student profile' },
+    { number: 2, title: 'Route & Stop', subtitle: 'Pickup location' },
+    { number: 3, title: 'Seat Selection', subtitle: 'Pick your 1 seat' },
+    { number: 4, title: 'Review & Verify', subtitle: 'Declaration' },
+    { number: 5, title: 'Confirmation', subtitle: 'Pass credential' },
   ];
 
   return (
@@ -214,14 +290,24 @@ export const ApplyPassPage: React.FC = () => {
         subtitle="Guided annual transport pass registration for VFSTR Vadlamudi Campus"
         badge={<Badge variant="secondary">AY 2026-2027</Badge>}
         actions={
-          currentStep < 4 ? (
+          currentStep < 5 ? (
             <div className="flex items-center gap-2">
               {hasSavedDraft && (
-                <Button variant="ghost" size="sm" leftIcon={<RotateCcw className="h-3.5 w-3.5" />} onClick={handleRestoreDraft}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={<RotateCcw className="h-3.5 w-3.5" />}
+                  onClick={handleRestoreDraft}
+                >
                   Restore Draft
                 </Button>
               )}
-              <Button variant="outline" size="sm" leftIcon={<Save className="h-3.5 w-3.5" />} onClick={handleSaveDraft}>
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<Save className="h-3.5 w-3.5" />}
+                onClick={handleSaveDraft}
+              >
                 Save Draft
               </Button>
             </div>
@@ -229,9 +315,9 @@ export const ApplyPassPage: React.FC = () => {
         }
       />
 
-      {/* Interactive Stepper Progress Wizard Header */}
-      <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {/* Stepper Progress Wizard Header (5 Steps) */}
+      <div className="p-4 rounded-xl border border-border bg-card shadow-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {steps.map((s) => {
             const isCurrent = currentStep === s.number;
             const isCompleted = completedSteps.includes(s.number) || currentStep > s.number;
@@ -242,8 +328,8 @@ export const ApplyPassPage: React.FC = () => {
                 type="button"
                 key={s.number}
                 disabled={!canClick && currentStep !== s.number}
-                onClick={() => canClick && handleJumpToStep(s.number as 1 | 2 | 3)}
-                className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                onClick={() => canClick && handleJumpToStep(s.number as 1 | 2 | 3 | 4)}
+                className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
                   isCurrent
                     ? 'border-primary bg-primary/5 text-primary ring-2 ring-primary/20'
                     : isCompleted
@@ -291,12 +377,12 @@ export const ApplyPassPage: React.FC = () => {
                   </h3>
                   <p className="text-xs text-muted-foreground">Verify your official university student record details</p>
                 </div>
-                <Badge variant="outline">1 of 3 Steps</Badge>
+                <Badge variant="outline">1 of 4 Steps</Badge>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
-                  label="Full Name"
+                  label="Full Name of Student"
                   leftIcon={<User className="h-4 w-4 text-muted-foreground" />}
                   error={errors.name?.message}
                   {...register('name')}
@@ -310,7 +396,7 @@ export const ApplyPassPage: React.FC = () => {
                 />
 
                 <Select
-                  label="Department"
+                  label="Academic Department"
                   options={[
                     { value: 'Computer Science & Engineering', label: 'Computer Science & Engineering (CSE)' },
                     { value: 'Electronics & Communication', label: 'Electronics & Communication (ECE)' },
@@ -379,7 +465,7 @@ export const ApplyPassPage: React.FC = () => {
                   </h3>
                   <p className="text-xs text-muted-foreground">Select your daily boarding point and preferred route schedule</p>
                 </div>
-                <Badge variant="outline">2 of 3 Steps</Badge>
+                <Badge variant="outline">2 of 4 Steps</Badge>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -421,33 +507,95 @@ export const ApplyPassPage: React.FC = () => {
                   error={errors.preferredShift?.message}
                   {...register('preferredShift')}
                 />
+
+                {/* Information Callout for Next Step */}
+                <div className="sm:col-span-2 p-3.5 rounded-xl bg-primary/5 border border-primary/20 flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-xs text-foreground flex items-center gap-1.5">
+                      <Armchair className="h-4 w-4 text-primary" /> Integrated Seat Selection in Next Step
+                    </span>
+                    <p className="text-[11px] text-muted-foreground">
+                      In Step 3, you will choose your dedicated 1 reserved seat on this route's bus for AY 2026-27.
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-primary font-mono text-[10px]">
+                    1 Seat / Student
+                  </Badge>
+                </div>
               </div>
 
-              {/* Photo Upload Placeholder */}
+              {/* Photo Upload Box */}
               <div className="p-4 border-2 border-dashed border-border rounded-xl bg-muted/20 text-center space-y-2">
                 <UploadCloud className="h-8 w-8 text-primary mx-auto" />
                 <div>
                   <h4 className="text-xs font-bold text-foreground">Upload Passport Size Photograph</h4>
                   <p className="text-[11px] text-muted-foreground">PNG or JPG max 2MB (Used for printed ID pass credential)</p>
                 </div>
-                <Button variant="outline" size="sm" type="button" onClick={() => toast.info('Photo Selected', 'Sample student photo attached.')}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  onClick={() => toast.info('Photo Selected', 'Sample student photo attached.')}
+                >
                   Browse Photo File
                 </Button>
               </div>
             </CardContent>
           )}
 
-          {/* STEP 3: Review Application with Edit Shortcuts */}
+          {/* STEP 3: Integrated Campus Bus Seat Selection (1 Person = 1 Seat) */}
           {currentStep === 3 && (
             <CardContent className="p-6 space-y-5">
               <div className="border-b border-border/60 pb-3 flex items-center justify-between">
                 <div>
                   <h3 className="text-base font-bold text-foreground flex items-center gap-2">
-                    <FileCheck className="h-5 w-5 text-primary" /> Step 3: Review Bus Pass Application
+                    <Armchair className="h-5 w-5 text-primary" /> Step 3: Choose Your Bus Seat (1 Person = 1 Seat)
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Select your numbered seat on the physical bus floor, or choose an open General Transit Pass
+                  </p>
+                </div>
+                <Badge variant="outline">3 of 4 Steps</Badge>
+              </div>
+
+              {/* Interactive Bus Seat Map Embedded Directly in Application Workflow */}
+              <div className="space-y-4">
+                <BusSeatMap
+                  routeNumber="14"
+                  routeName={`${formValues.boardingPoint} Express`}
+                  busRegNo="AP 07 TJ 4514"
+                  departureTime="07:10 AM"
+                  fareAmount={29300}
+                  onConfirmBooking={handleSeatSelected}
+                  userRole="student"
+                />
+
+                <div className="p-3.5 rounded-xl bg-muted/40 border border-border flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    <span>
+                      Current Selection: <strong className="text-foreground">{selectedSeat}</strong>
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    Allocated to {formValues.regNo}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          )}
+
+          {/* STEP 4: Review Application & Declaration */}
+          {currentStep === 4 && (
+            <CardContent className="p-6 space-y-5">
+              <div className="border-b border-border/60 pb-3 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                    <FileCheck className="h-5 w-5 text-primary" /> Step 4: Review Bus Pass Application
                   </h3>
                   <p className="text-xs text-muted-foreground">Review your submitted details before final submission to Transport Cell</p>
                 </div>
-                <Badge variant="outline">3 of 3 Steps</Badge>
+                <Badge variant="outline">4 of 4 Steps</Badge>
               </div>
 
               <div className="space-y-4 text-xs">
@@ -457,7 +605,13 @@ export const ApplyPassPage: React.FC = () => {
                     <h4 className="font-bold text-foreground flex items-center gap-2 text-sm">
                       <User className="h-4 w-4 text-primary" /> Personal Details Summary
                     </h4>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs text-primary" leftIcon={<Edit2 className="h-3 w-3" />} onClick={() => handleJumpToStep(1)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs text-primary"
+                      leftIcon={<Edit2 className="h-3 w-3" />}
+                      onClick={() => handleJumpToStep(1)}
+                    >
                       Edit Section
                     </Button>
                   </div>
@@ -490,13 +644,19 @@ export const ApplyPassPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Transport Details Review Box */}
+                {/* Transport & Route Details Review Box */}
                 <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-3">
                   <div className="flex items-center justify-between border-b border-border/60 pb-2">
                     <h4 className="font-bold text-foreground flex items-center gap-2 text-sm">
                       <Bus className="h-4 w-4 text-primary" /> Transport & Route Selection Summary
                     </h4>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs text-primary" leftIcon={<Edit2 className="h-3 w-3" />} onClick={() => handleJumpToStep(2)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs text-primary"
+                      leftIcon={<Edit2 className="h-3 w-3" />}
+                      onClick={() => handleJumpToStep(2)}
+                    >
                       Edit Section
                     </Button>
                   </div>
@@ -521,6 +681,39 @@ export const ApplyPassPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Dedicated Seat Allocation Review Box */}
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/30 space-y-3">
+                  <div className="flex items-center justify-between border-b border-primary/20 pb-2">
+                    <h4 className="font-bold text-foreground flex items-center gap-2 text-sm">
+                      <Armchair className="h-4 w-4 text-primary" /> Reserved Seat Allocation Summary
+                    </h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs text-primary"
+                      leftIcon={<Edit2 className="h-3 w-3" />}
+                      onClick={() => handleJumpToStep(3)}
+                    >
+                      Change Seat
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-muted-foreground">
+                    <div>
+                      <span>Allocated Pass:</span>
+                      <strong className="text-primary text-sm font-bold block">{selectedSeat}</strong>
+                    </div>
+                    <div>
+                      <span>Bus Assignment:</span>
+                      <strong className="text-foreground font-mono block">Bus AP 07 TJ 4514</strong>
+                    </div>
+                    <div>
+                      <span>Allocation Rule:</span>
+                      <strong className="text-foreground block">1 Student • 1 Seat</strong>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Declaration Checkbox */}
                 <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
                   <Checkbox
@@ -536,8 +729,8 @@ export const ApplyPassPage: React.FC = () => {
             </CardContent>
           )}
 
-          {/* STEP 4: Submission Success */}
-          {currentStep === 4 && (
+          {/* STEP 5: Submission Success Confirmation */}
+          {currentStep === 5 && (
             <CardContent className="p-8 text-center space-y-6">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="h-10 w-10" />
@@ -551,7 +744,9 @@ export const ApplyPassPage: React.FC = () => {
                   Bus Pass Application Received!
                 </h2>
                 <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                  Your application reference code is <span className="font-bold font-mono text-foreground text-sm">{applicationRef}</span>.
+                  Your application reference code is{' '}
+                  <span className="font-bold font-mono text-foreground text-sm">{applicationRef}</span> with{' '}
+                  <strong className="text-primary">{selectedSeat}</strong> reserved for AY 2026-27.
                 </p>
               </div>
 
@@ -562,20 +757,29 @@ export const ApplyPassPage: React.FC = () => {
                 </h4>
                 <div className="space-y-2 text-muted-foreground">
                   <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
-                    <Check className="h-4 w-4" /> 1. Application Submitted Online
+                    <Check className="h-4 w-4" /> 1. Application Submitted Online ({selectedSeat})
                   </div>
                   <div className="flex items-center gap-2 text-foreground font-medium">
                     <Clock className="h-4 w-4 text-amber-500" /> 2. Transport Cell Verification & Fee Clearance
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" /> 3. Digital Pass Generation & Bus Assignment
+                    <Calendar className="h-4 w-4 text-muted-foreground" /> 3. Digital Pass Active & Bus QR Enabled
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => setIsUpiModalOpen(true)}
+                  leftIcon={<QrCode className="h-4 w-4" />}
+                  className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 font-bold"
+                >
+                  Pay ₹29,300 via UPI (Instant Clearance)
+                </Button>
                 <Link to="/student" className="w-full sm:w-auto">
-                  <Button variant="primary" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full sm:w-auto">
                     Go to Student Dashboard
                   </Button>
                 </Link>
@@ -589,22 +793,40 @@ export const ApplyPassPage: React.FC = () => {
           )}
 
           {/* Form Footer Navigation Controls */}
-          {currentStep < 4 && (
+          {currentStep < 5 && (
             <CardFooter className="bg-muted/30 p-4 border-t border-border flex items-center justify-between">
               {currentStep > 1 ? (
-                <Button type="button" variant="outline" size="sm" leftIcon={<ArrowLeft className="h-3.5 w-3.5" />} onClick={handlePrevStep}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<ArrowLeft className="h-3.5 w-3.5" />}
+                  onClick={handlePrevStep}
+                >
                   Previous
                 </Button>
               ) : (
                 <div />
               )}
 
-              {currentStep < 3 ? (
-                <Button type="button" variant="primary" size="sm" rightIcon={<ArrowRight className="h-3.5 w-3.5" />} onClick={handleNextStep}>
+              {currentStep < 4 ? (
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  rightIcon={<ArrowRight className="h-3.5 w-3.5" />}
+                  onClick={handleNextStep}
+                >
                   Continue to Step {currentStep + 1}
                 </Button>
               ) : (
-                <Button type="submit" variant="primary" size="sm" isLoading={isSubmitting} leftIcon={<Send className="h-3.5 w-3.5" />}>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  isLoading={isSubmitting}
+                  leftIcon={<Send className="h-3.5 w-3.5" />}
+                >
                   Submit Application
                 </Button>
               )}
@@ -612,6 +834,24 @@ export const ApplyPassPage: React.FC = () => {
           )}
         </Card>
       </form>
+
+      {/* Instant UPI Payment Gateway Modal */}
+      <UpiPaymentModal
+        isOpen={isUpiModalOpen}
+        onClose={() => setIsUpiModalOpen(false)}
+        studentName={studentProfile.name}
+        regNo={studentProfile.regNo}
+        amount={29300}
+        assignedRoute="Route #14 - Guntur City Express"
+        purpose={`Annual Bus Pass AY 2026-27 (${selectedSeat})`}
+        onSuccess={() => {
+          updateStudentProfile({
+            isTransportUser: true,
+            transportStatus: 'active',
+            seatNumber: selectedSeat,
+          });
+        }}
+      />
     </div>
   );
 };
