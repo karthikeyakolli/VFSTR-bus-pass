@@ -13,3 +13,4 @@ export * from './ErrorHandlingService';
 export * from './AuditService';
 export * from './AdvancedBackendService';
 export * from './FacultyService';
+export * from './ai/GroqAiService';
