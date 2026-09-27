@@ -1,16 +1,17 @@
 {
   "short_name": "VFSTR BusPass",
-  "name": "VFSTR Smart Transport & Digital Bus Pass System",
+  "name": "VFSTR Smart Transport & Bus Pass",
   "icons": [
     {
-      "src": "favicon.ico",
-      "type": "image/x-icon",
-      "sizes": "64x64"
+      "src": "vignan-logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
     }
   ],
-  "start_url": "./index.html",
-  "background_color": "#0f172a",
-  "theme_color": "#0284c7",
+  "start_url": "/VFSTR-bus-pass/",
+  "background_color": "#ffffff",
+  "theme_color": "#1e3a8a",
   "display": "standalone",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "description": "Vignan University Digital Bus Pass & Transport Network"
 }
